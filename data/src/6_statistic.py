@@ -5,8 +5,8 @@ from collections import Counter, defaultdict
 
 # --- CẤU HÌNH ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # data/
-INPUT_FILE = os.path.join(BASE_DIR, "raw", "3_final_nlp_papers_15.jsonl") # Sửa lại tên file đúng của bạn
-REPORT_FILE = os.path.join(BASE_DIR, "raw", "statistics_report.json")   # File lưu kết quả chi tiết
+INPUT_FILE = os.path.join(BASE_DIR, "data_raw", "3_final_nlp_papers3040.jsonl") # Sửa lại tên file đúng của bạn
+REPORT_FILE = os.path.join(BASE_DIR, "data_raw", "statistics_report.json")   # File lưu kết quả chi tiết
 
 def normalize_text(text):
     """Chuẩn hóa text để so sánh trùng lặp"""
