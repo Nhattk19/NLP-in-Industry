@@ -6,7 +6,7 @@ import glob
 # --- CẤU HÌNH ĐƯỜNG DẪN ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # data/
 INPUT_DIR = os.path.join(BASE_DIR, "data_final")
-CLEAN_DIR = os.path.join(BASE_DIR, "data_final")
+CLEAN_DIR = os.path.join(BASE_DIR, "data_processed")
 OUTPUT_FILE = os.path.join(CLEAN_DIR, "final_cleaned_data.jsonl")
 
 # ==========================================
