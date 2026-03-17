@@ -5,3 +5,5 @@ __pycache__/
 .idea/
 data/raw/
 models/large/
+venv/
+chroma_store/
