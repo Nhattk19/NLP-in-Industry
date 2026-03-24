@@ -6,8 +6,8 @@ from collections import Counter, defaultdict
 
 # --- CẤU HÌNH ĐƯỜNG DẪN ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # Thư mục data/
-INPUT_DIR = os.path.join(BASE_DIR, "data_final")                               # Đọc TẤT CẢ file trong data/final/
-REPORT_FILE = os.path.join(INPUT_DIR, "statistics_report.json")         # File lưu ID chi tiết
+INPUT_DIR = os.path.join(BASE_DIR, "data_processed")                               # Đọc TẤT CẢ file trong data/final/
+REPORT_FILE = os.path.join(INPUT_DIR, "6_statistics_report.json")         # File lưu ID chi tiết
 
 def normalize_text(text):
     if not text: return ""

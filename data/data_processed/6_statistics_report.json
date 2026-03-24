@@ -1,0 +1,125 @@
+{
+    "summary": {
+        "total_files_scanned": 1,
+        "total_papers": 17176,
+        "total_surveys": 3233,
+        "total_vietnamese": 50,
+        "total_duplicate_titles": 5
+    },
+    "details": {
+        "vietnamese_ids": [
+            "245634480",
+            "201103583",
+            "276389900",
+            "219324331",
+            "284629544",
+            "244129039",
+            "221364878",
+            "264396469",
+            "269091208",
+            "276966741",
+            "15772142",
+            "275733863",
+            "32228701",
+            "255043404",
+            "12627600",
+            "285727344",
+            "3113377",
+            "11324829",
+            "15591672",
+            "268681350",
+            "253370581",
+            "51875779",
+            "18250584",
+            "216914731",
+            "2027922",
+            "230523780",
+            "4894843",
+            "2396148",
+            "222091036",
+            "271521985",
+            "219921159",
+            "267312431",
+            "8131267",
+            "234785837",
+            "231823177",
+            "264426424",
+            "3171223",
+            "3646455",
+            "267412069",
+            "2700604",
+            "211132594",
+            "255033305",
+            "270620571",
+            "56471769",
+            "284139106",
+            "1587106",
+            "3302099",
+            "253107357",
+            "227068911",
+            "13038579"
+        ],
+        "duplicates_by_title": {
+            "automatictextsummarization": [
+                {
+                    "id": "86633635",
+                    "title": "Automatic Text Summarization",
+                    "file_source": "final_cleaned_data.jsonl"
+                },
+                {
+                    "id": "236724759",
+                    "title": "Automatic Text Summarization",
+                    "file_source": "final_cleaned_data.jsonl"
+                }
+            ],
+            "maximizingtopdownconstraintsforunificationbasedsystems": [
+                {
+                    "id": "5431746",
+                    "title": "Maximizing Top-down Constraints for Unification-based Systems",
+                    "file_source": "final_cleaned_data.jsonl"
+                },
+                {
+                    "id": "57528002",
+                    "title": "Maximizing Top-down Constraints for Unification-based Systems",
+                    "file_source": "final_cleaned_data.jsonl"
+                }
+            ],
+            "towardacomputationaltheoryofspeechperception": [
+                {
+                    "id": "5151271",
+                    "title": "Toward a Computational Theory of Speech Perception",
+                    "file_source": "final_cleaned_data.jsonl"
+                },
+                {
+                    "id": "57350096",
+                    "title": "Toward a Computational Theory of Speech Perception",
+                    "file_source": "final_cleaned_data.jsonl"
+                }
+            ],
+            "thetextsystemfornaturallanguagegenerationanoverview": [
+                {
+                    "id": "61208346",
+                    "title": "THE TEXT SYSTEM FOR NATURAL LANGUAGE GENERATION: AN OVERVIEW",
+                    "file_source": "final_cleaned_data.jsonl"
+                },
+                {
+                    "id": "17676483",
+                    "title": "The Text System for Natural Language Generation: an Overview",
+                    "file_source": "final_cleaned_data.jsonl"
+                }
+            ],
+            "machinereadabledictionarieslexicaldatabasesandthelexicalsystem": [
+                {
+                    "id": "8874939",
+                    "title": "Machine-Readable Dictionaries, Lexical Data Bases and the Lexical System",
+                    "file_source": "final_cleaned_data.jsonl"
+                },
+                {
+                    "id": "56913058",
+                    "title": "Machine-readable dictionaries, lexical data bases and the lexical system",
+                    "file_source": "final_cleaned_data.jsonl"
+                }
+            ]
+        }
+    }
+}
