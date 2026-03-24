@@ -1,3 +1,4 @@
+# 1_ingest_jsonl_to_chroma.py
 import json
 import os
 import chromadb
@@ -5,9 +6,10 @@ from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
 # ================= CONFIG =================
-JSONL_PATH = "./data/data_processed/final_cleaned_data.jsonl"
-COLLECTION_NAME = "papers_local"
-CHROMA_PATH = "./chroma_store"
+# JSONL_PATH = "./data/data_processed/final_cleaned_data.jsonl"
+JSONL_PATH = "./src/chromadb/data_with_abstract.jsonl"  # file đã được lọc chỉ còn record có abstract
+COLLECTION_NAME = "papers_abstracts"  # tên collection mới để phân biệt với collection cũ (nếu có)
+CHROMA_PATH = "./src/chromadb/chroma_store_abstracts"
 
 BATCH_SIZE = 128
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
@@ -56,6 +58,7 @@ def build_metadata(record):
     return {
         "paper_id": str(record.get("paper_id", "")),
         "title": str(record.get("title") or ""),
+        "abstract": str(record.get("abstract") or ""), 
         "venue": str(record.get("venue") or ""),
         "publication_date": str(record.get("publication_date") or ""),
         "is_survey": bool(record.get("is_survey", False)),
@@ -65,7 +68,6 @@ def build_metadata(record):
         "doi": str(externalsid.get("doi") or ""),
         "s2_url": str(externalsid.get("s2_url") or "")
     }
-
 
 def count_lines(filepath):
     with open(filepath, "r", encoding="utf-8") as f:

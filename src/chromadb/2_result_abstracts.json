@@ -1,0 +1,767 @@
+[
+  {
+    "query": "transformer architecture",
+    "results": [
+      {
+        "paper_id": "239885427",
+        "title": "Hierarchical Transformers Are More Efficient Language Models",
+        "abstract": "Transformer models yield impressive results on many NLP and sequence modeling tasks. Remarkably, Transformers can handle long sequences which allows them to produce long coherent outputs: full paragraphs produced by GPT-3 or well-structured images produced by DALL-E. These large language models are impressive but also very inefficient and costly, which limits their applications and accessibility. We postulate that having an explicit hierarchical architecture is the key to Transformers that efficiently handle long sequences. To verify this claim, we first study different ways to downsample and upsample activations in Transformers so as to make them hierarchical. We use the best performing upsampling and downsampling layers to create Hourglass - a hierarchical Transformer language model. Hourglass improves upon the Transformer baseline given the same amount of computation and can yield the same results as Transformers more efficiently. In particular, Hourglass sets new state-of-the-art for Transformer models on the ImageNet32 generation task and improves language modeling efficiency on the widely studied enwik8 benchmark.",
+        "score": 1.0684821605682373,
+        "doi": "https://doi.org/10.18653/v1/2022.findings-naacl.117",
+        "s2_url": "https://www.semanticscholar.org/paper/231e768f0cd280faa0f725bb353262cb4fed08d1"
+      },
+      {
+        "paper_id": "283339456",
+        "title": "Automatic Transformer Test Report Generation Tool",
+        "abstract": "Transformer testing is a pivotal step in insuring safety, reliability and efficiency of power industries. Ordinarily,\nengineers relay on manual calculations, spread sheet and heavy formatting on word processing software’s like MS. Office which\nis manual and error prone, which can lead to human error and easily exposed to manipulation. This paper presents a software\nsolution for automatic transformer test data processing and reporting as per NABL and BIS standards. Software allows engineer\nto enter raw measurement data for winding resistance, ratio, no-load loss, load loss, temperature rise, impedance, tan delta,\ninsulation resistance, magnetic balance, harmonics, noise, and zero-phase-sequence (ZPS) and more such tests, results are\nautomatically formatted into standardized test report, eliminates the extensive manual calculations and formatting. Which tends\nto reduction in processing time, calculation errors, and higher consistency and transparency of test reports. It enhances the\nproductivity of transformer industries and laboratories",
+        "score": 1.0775301456451416,
+        "doi": "https://doi.org/10.22214/ijraset.2025.75645",
+        "s2_url": "https://www.semanticscholar.org/paper/ef02d842013fc28d8e4863228809f839a16eeaef"
+      },
+      {
+        "paper_id": "230437609",
+        "title": "An Efficient Transformer Decoder with Compressed Sub-layers",
+        "abstract": "The large attention-based encoder-decoder network (Transformer) has become prevailing recently due to its effectiveness. But the high computation complexity of its decoder raises the inefficiency issue. By examining the mathematic formulation of the decoder, we show that under some mild conditions, the architecture could be simplified by compressing its sub-layers, the basic building block of Transformer, and achieves a higher parallelism. We thereby propose Compressed Attention Network, whose decoder layer consists of only one sub-layer instead of three. Extensive experiments on 14 WMT machine translation tasks show that our model is 1.42x faster with performance on par with a strong baseline. This strong baseline is already 2x faster than the widely used standard baseline without loss in performance.",
+        "score": 1.1321626901626587,
+        "doi": "https://doi.org/10.1609/aaai.v35i15.17572",
+        "s2_url": "https://www.semanticscholar.org/paper/0486a4811ea15f975fa375d1b0c6a8e7b87176c2"
+      },
+      {
+        "paper_id": "270440967",
+        "title": "MLKV: Multi-Layer Key-Value Heads for Memory Efficient Transformer Decoding",
+        "abstract": "Auto-regressive inference of transformers benefit greatly from Key-Value (KV) caching, but can lead to major memory bottlenecks as model size, batch size, and sequence length grow at scale. We introduce Multi-Layer Key-Value (MLKV) sharing, a novel approach extending KV sharing across transformer layers to reduce memory usage beyond what was possible with Multi-Query Attention (MQA) and Grouped-Query Attention (GQA). Evaluations on various NLP benchmarks and inference metrics using uptrained Pythia-160M variants demonstrate that MLKV significantly reduces memory usage with minimal performance loss, reducing KV cache size down to a factor of 6x compared to MQA. These results highlight MLKV's potential for efficient deployment of transformer models at scale. We provide code at https://github.com/zaydzuhri/pythia-mlkv",
+        "score": 1.1377884149551392,
+        "doi": "https://doi.org/10.48550/arXiv.2406.09297",
+        "s2_url": "https://www.semanticscholar.org/paper/f7e76d1a952f8120ca2f2afbb419dd849d25228a"
+      },
+      {
+        "paper_id": "236511698",
+        "title": "Easy and Efficient Transformer: Scalable Inference Solution For Large NLP Model",
+        "abstract": "Recently, large-scale transformer-based models have been proven to be effective over various tasks across many domains. Nevertheless, applying them in industrial production requires tedious and heavy works to reduce inference costs. To fill such a gap, we introduce a scalable inference solution: Easy and Efficient Transformer (EET), including a series of transformer inference optimization at the algorithm and implementation levels. First, we design highly optimized kernels for long inputs and large hidden sizes. Second, we propose a flexible CUDA memory manager to reduce the memory footprint when deploying a large model. Compared with the state-of-the-art transformer inference library (Faster Transformer v4.0), EET can achieve an average of 1.40-4.20x speedup on the transformer decoder layer with an A100 GPU.",
+        "score": 1.1381118297576904,
+        "doi": "https://doi.org/10.18653/v1/2022.naacl-industry.8",
+        "s2_url": "https://www.semanticscholar.org/paper/ba68248488a92114d5136263d284e109395abb5e"
+      }
+    ]
+  },
+  {
+    "query": "bert pretraining",
+    "results": [
+      {
+        "paper_id": "153312532",
+        "title": "How to Fine-Tune BERT for Text Classification?",
+        "abstract": "Language model pre-training has proven to be useful in learning universal language representations. As a state-of-the-art language model pre-training model, BERT (Bidirectional Encoder Representations from Transformers) has achieved amazing results in many language understanding tasks. In this paper, we conduct exhaustive experiments to investigate different fine-tuning methods of BERT on text classification task and provide a general solution for BERT fine-tuning. Finally, the proposed solution obtains new state-of-the-art results on eight widely-studied text classification datasets.",
+        "score": 0.7121972441673279,
+        "doi": "https://doi.org/10.1007/978-3-030-32381-3_16",
+        "s2_url": "https://www.semanticscholar.org/paper/a022bda79947d1f656a1164003c1b3ae9a843df9"
+      },
+      {
+        "paper_id": "211532403",
+        "title": "A Primer in BERTology: What We Know About How BERT Works",
+        "abstract": "Abstract Transformer-based models have pushed state of the art in many areas of NLP, but our understanding of what is behind their success is still limited. This paper is the first survey of over 150 studies of the popular BERT model. We review the current state of knowledge about how BERT works, what kind of information it learns and how it is represented, common modifications to its training objectives and architecture, the overparameterization issue, and approaches to compression. We then outline directions for future research.",
+        "score": 0.721149206161499,
+        "doi": "https://doi.org/10.1162/tacl_a_00349",
+        "s2_url": "https://www.semanticscholar.org/paper/bd20069f5cac3e63083ecf6479abc1799db33ce0"
+      },
+      {
+        "paper_id": "239459434",
+        "title": "Single task fine-tune BERT for text classification",
+        "abstract": "Over the past decades, natural language processing (NLP) has been a hot topic in many fields, e.g., sentiment analysis and news topic classification. As a very powerful language pre-training model, Bidirectional Encoder Representations from Transformers (BERT) has achieved promising results in many language understanding tasks including text classification. However, fine-tune BERT to adapt different text classification task efficiently is a critical problem that needs improvement. In this paper, a general solution is proposed for BERT fine-tuning on single text classification task. Compared with other traditional fine-tune strategies without any pre-training step, the performance of BERT is boosted by pre-training withintask data. Moreover, the proposed solution obtains superior results on six widely-used text classification datasets.",
+        "score": 0.782041609287262,
+        "doi": "https://doi.org/10.1117/12.2604768",
+        "s2_url": "https://www.semanticscholar.org/paper/ee8a57fce33dfc6e2a914c1cad8f13101a69fea5"
+      },
+      {
+        "paper_id": "204509218",
+        "title": "Q8BERT: Quantized 8Bit BERT",
+        "abstract": "Recently, pre-trained Transformer [1] based language models such as BERT [2] and GPT [3], have shown great improvement in many Natural Language Processing (NLP) tasks. However, these models contain a large amount of parameters. The emergence of even larger and more accurate models such as GPT2 [4] and Megatron11https://github.com/NVIDIA/Megatron-LM, suggest a trend of large pre-trained Transformer models. However, using these large models in production environments is a complex task requiring a large amount of compute, memory and power resources. In this work we show how to perform quantization-aware training during the fine-tuning phase of BERT in order to compress BERT by 4x with minimal accuracy loss. Furthermore, the produced quantized model can accelerate inference speed if it is optimized for 8bit Integer supporting hardware.",
+        "score": 0.7929779887199402,
+        "doi": "https://doi.org/10.1109/EMC2-NIPS53020.2019.00016",
+        "s2_url": "https://www.semanticscholar.org/paper/ce106590145e89ea4b621c99665862967ccf5dac"
+      },
+      {
+        "paper_id": "227238841",
+        "title": "Multimodal Pretraining Unmasked: A Meta-Analysis and a Unified Framework of Vision-and-Language BERTs",
+        "abstract": "Abstract Large-scale pretraining and task-specific fine- tuning is now the standard methodology for many tasks in computer vision and natural language processing. Recently, a multitude of methods have been proposed for pretraining vision and language BERTs to tackle challenges at the intersection of these two key areas of AI. These models can be categorized into either single-stream or dual-stream encoders. We study the differences between these two categories, and show how they can be unified under a single theoretical framework. We then conduct controlled experiments to discern the empirical differences between five vision and language BERTs. Our experiments show that training data and hyperparameters are responsible for most of the differences between the reported results, but they also reveal that the embedding layer plays a crucial role in these massive models.",
+        "score": 0.8209994435310364,
+        "doi": "https://doi.org/10.1162/tacl_a_00408",
+        "s2_url": "https://www.semanticscholar.org/paper/dec2f6d3215de9aa2d87d358b7933fb21eeb3bc0"
+      }
+    ]
+  },
+  {
+    "query": "named entity recognition",
+    "results": [
+      {
+        "paper_id": "1482821",
+        "title": "Unsupervised Learning of Name Structure From Coreference Data",
+        "abstract": "We present two methods for learning the structure of personal names from unlabeled data. The first simply uses a few implicit constraints governing this structure to gain a toehold on the problem --- e.g., descriptors come before first names, which come before middle names, etc. The second model also uses possible coreference information. We found that coreference constraints on names improve the performance of the model from 92.6% to 97.0%. We are interested in this problem in its own right, but also as a possible way to improve named entity recognition (by recognizing the structure of different kinds of names) and as a way to improve noun-phrase coreference determination.",
+        "score": 0.562669038772583,
+        "doi": "https://doi.org/10.3115/1073336.1073343",
+        "s2_url": "https://www.semanticscholar.org/paper/e20839907f9726898724b5e0406e4b62b6aaa0a1"
+      },
+      {
+        "paper_id": "7332330",
+        "title": "Named Entity Recognition without Gazetteers",
+        "abstract": "It is often claimed that Named Entity recognition systems need extensive gazetteers---lists of names of people, organisations, locations, and other named entities. Indeed, the compilation of such gazetteers is sometimes mentioned as a bottleneck in the design of Named Entity recognition systems.We report on a Named Entity recognition system which combines rule-based grammars with statistical (maximum entropy) models. We report on the system's performance with gazetteers of different types and different sizes, using test material from the MUC-7 competition. We show that, for the text type and task of this competition, it is sufficient to use relatively small gazetteers of well-known names, rather than large gazetteers of low-frequency names. We conclude with observations about the domain independence of the competition and of our experiments.",
+        "score": 0.5933477282524109,
+        "doi": "https://doi.org/10.3115/977035.977037",
+        "s2_url": "https://www.semanticscholar.org/paper/aa8c4d7b07e1b03dfe214b247e62c27de33b63b6"
+      },
+      {
+        "paper_id": "5741686",
+        "title": "A Named Entity Recognition Method based on Decomposition and Concatenation of Word Chunks",
+        "abstract": "We propose a named entity (NE) recognition method in which word chunks are repeatedly decomposed and concatenated. Our method identifies word chunks with a base chunker, such as a noun phrase chunker, and then recognizes NEs from the recognized word chunk sequences. By using word chunks, we can obtain features that cannot be obtained in word-sequence-based recognition methods, such as the first word of a word chunk, the last word of a word chunk, and so on. However, each word chunk may include a part of an NE or multiple NEs. To solve this problem, we use the following operators: SHIFT for separating the first word from a word chunk, POP for separating the last word from a word chunk, JOIN for concatenating two word chunks, and REDUCE for assigning an NE label to a word chunk. We evaluate our method on a Japanese NE recognition dataset that includes about 200,000 annotations of 191 types of NEs from over 8,500 news articles. The experimental results show that the training and processing speeds of our method are faster than those of a linear-chain structured perceptron and a semi-Markov perceptron, while maintaining high accuracy.",
+        "score": 0.6069229245185852,
+        "doi": "https://doi.org/10.1145/2499955.2499958",
+        "s2_url": "https://www.semanticscholar.org/paper/3240c5b8526768f697884528f66f6e950e54bf49"
+      },
+      {
+        "paper_id": "233189544",
+        "title": "Identifying Named Entities as they are Typed",
+        "abstract": "Identifying named entities in written text is an essential component of the text processing pipeline used in applications such as text editors to gain a better understanding of the semantics of the text. However, the typical experimental setup for evaluating Named Entity Recognition (NER) systems is not directly applicable to systems that process text in real time as the text is being typed. Evaluation is performed on a sentence level assuming the end-user is willing to wait until the entire sentence is typed for entities to be identified and further linked to identifiers or co-referenced. We introduce a novel experimental setup for NER systems for applications where decisions about named entity boundaries need to be performed in an online fashion. We study how state-of-the-art methods perform under this setup in multiple languages and propose adaptations to these models to suit this new experimental setup. Experimental results show that the best systems that are evaluated on each token after its typed, reach performance within 1–5 F1 points of systems that are evaluated at the end of the sentence. These show that entity recognition can be performed in this setup and open up the development of other NLP tools in a similar setup.",
+        "score": 0.6220329403877258,
+        "doi": "https://doi.org/10.18653/v1/2021.eacl-main.84",
+        "s2_url": "https://www.semanticscholar.org/paper/8e50888480170637a570a3bebea37eadf292d982"
+      },
+      {
+        "paper_id": "1414264",
+        "title": "Named Entity Recognition using an HMM-based Chunk Tagger",
+        "abstract": "This paper proposes a Hidden Markov Model (HMM) and an HMM-based chunk tagger, from which a named entity (NE) recognition (NER) system is built to recognize and classify names, times and numerical quantities. Through the HMM, our system is able to apply and integrate four types of internal and external evidences: 1) simple deterministic internal feature of the words, such as capitalization and digitalization; 2) internal semantic feature of important triggers; 3) internal gazetteer feature; 4) external macro context feature. In this way, the NER problem can be resolved effectively. Evaluation of our system on MUC-6 and MUC-7 English NE tasks achieves F-measures of 96.6% and 94.1% respectively. It shows that the performance is significantly better than reported by any other machine-learning system. Moreover, the performance is even consistently better than those based on handcrafted rules.",
+        "score": 0.6268711686134338,
+        "doi": "https://doi.org/10.3115/1073083.1073163",
+        "s2_url": "https://www.semanticscholar.org/paper/51bdd0b839fe8ab1daafa05d1ed03edff601f4c7"
+      }
+    ]
+  },
+  {
+    "query": "text summarization",
+    "results": [
+      {
+        "paper_id": "304226",
+        "title": "Text Summarization Techniques: A Brief Survey",
+        "abstract": "In recent years, there has been a explosion in the amount of text data from a variety of sources. This volume of text is an invaluable source of information and knowledge which needs to be effectively summarized to be useful. In this review, the main approaches to automatic text summarization are described. We review the different processes for summarization and describe the effectiveness and shortcomings of the different methods.",
+        "score": 0.41231241822242737,
+        "doi": "https://doi.org/10.14569/IJACSA.2017.081052",
+        "s2_url": "https://www.semanticscholar.org/paper/12a50024da4b1ad71ddab2fb68785dc56c2e540f"
+      },
+      {
+        "paper_id": "238413847",
+        "title": "Analytical study of Text Summarization Techniques",
+        "abstract": "Summarization of Text is extracting important information from a body of text and present it in the form of a concise summary. The need for summarization has increased in recent times. The importance of having a simple concise summary of information in the news, business and research domains is paramount. Automatic text summarization is a well known task in the NLP (Natural Language Processing) field. Text Summarization techniques can be large divided into two groups: Extractive summarization and Abstractive summarization. Extractive summarization is based on identifying key sentences or phrases from the source text and grouping them to produce a summary without rewriting or paraphrasing the original text. Abstractive summarization is based on utilizing a deeper understanding of the source text and generating new sentences, not present in the original text, which improves the summary by reducing redundancy and focusing on the meaning of the source text. In this study we implement and compare the performance of various automatic summarization methods in order to gain insight into how long the methods take to implement and how accurate and human-like the generated summaries are. We aim to learn the pros and cons of the various techniques used by utilizing summary scoring as well as manual inspection of generated summary.",
+        "score": 0.4898647665977478,
+        "doi": "https://doi.org/10.1109/ASIANCON51346.2021.9544804",
+        "s2_url": "https://www.semanticscholar.org/paper/057f351367ae8b909322330c18963c3e18cb8ed0"
+      },
+      {
+        "paper_id": "11944261",
+        "title": "Automated Text Summarization and the Summarist System",
+        "abstract": "This paper consists of three parts: a preliminary typology of summaries in general; a description of the current and planned modules and performance of the SUMMARIST automated multilingual text summarization system being built sat ISI, and a discussion of three methods to evaluate summaries.",
+        "score": 0.5209425091743469,
+        "doi": "https://doi.org/10.3115/1119089.1119121",
+        "s2_url": "https://www.semanticscholar.org/paper/9b49cc6bf4f68be6c8b3530790925787d82ab2b2"
+      },
+      {
+        "paper_id": "212416240",
+        "title": "A Review on Text Summarization Techniques",
+        "abstract": "—In recent years, an enormous amount of text data from diversiﬁed sources has been emerged day-by-day. This huge amount of data carries essential information and knowledge that needs to be effectively summarized to be useful. Hence, the main contribution of this paper is twofold. We ﬁrst introduce some concepts related to extractive text summarization and then provide a systematic analysis of various text summarization techniques. In particular, some challenges in extractive summarization of single as well as multiple documents are introduced. The problems focus on the textual assessment and similarity measurement between the text documents are addressed. The challenges discussed are generic and applicable to every possible scenario in text summarization. Then, existing state-of-the-art of extractive summarization techniques are discussed that focus on the identiﬁed challenges.",
+        "score": 0.525822639465332,
+        "doi": "https://doi.org/10.37398/jsr.2020.640148",
+        "s2_url": "https://www.semanticscholar.org/paper/4b9b007770282c36151b272bb1cb1261ab38249f"
+      },
+      {
+        "paper_id": "9202810",
+        "title": "CAST: A computer-aided summarisation tool",
+        "abstract": "In this paper we propose computer-aided summarisation (CAS) as an alternative approach to automatic summarisation, and present an ongoing project which aims to develop a CAS system. The need for such an alternative approach is justified by the relatively poor performance of fully automatic methods used in summarisation. Our system combines several summarisation methods, allowing the user of the system to interact with their parameters and output in order to improve the quality of the produced summary.",
+        "score": 0.551625669002533,
+        "doi": "https://doi.org/10.3115/1067737.1067767",
+        "s2_url": "https://www.semanticscholar.org/paper/b2b830bacb9843fc393e450747d355b8c2f68bcb"
+      }
+    ]
+  },
+  {
+    "query": "machine translation",
+    "results": [
+      {
+        "paper_id": "1516445",
+        "title": "Machine translation",
+        "abstract": "Elements of the history, state of the art, and probable future of Machine Translation (MT) are discussed. The treatment is largely tutorial, based on the assumption that this audience is, for the most part, ignorant of matters pertaining to translation in general, and MT in particular. The paper covers some of the major MT R&D groups, the general techniques they employ(ed), and the roles they play(ed) in the development of the field. The conclusions concern the seeming permanence of the translation problem, and potential re-integration of MT with mainstream Computational Linguistics.",
+        "score": 0.5325434803962708,
+        "doi": "https://doi.org/10.3115/980491.980607",
+        "s2_url": "https://www.semanticscholar.org/paper/09fcf9ac16a0eb2a2649b653a811325fc42aacf7"
+      },
+      {
+        "paper_id": "1666195",
+        "title": "A Recursive Statistical Translation Model",
+        "abstract": "A new model for statistical translation is presented. A novel feature of this model is that the alignments it produces are hierarchically arranged. The generative process begins by splitting the input sentence in two parts. Each of the parts is translated by a recursive application of the model and the resulting translation are then concatenated. If the sentence is small enough, a simpler model (in our case IBM's model 1) is applied. \n \nThe training of the model is explained. Finally, the model is evaluated using the corpora from a large vocabulary shared task.",
+        "score": 0.5945676565170288,
+        "doi": "https://doi.org/10.3115/1654449.1654492",
+        "s2_url": "https://www.semanticscholar.org/paper/422380f6e656d649a93a4ae1679f2cd1beaa799b"
+      },
+      {
+        "paper_id": "11080756",
+        "title": "Bleu: a Method for Automatic Evaluation of Machine Translation",
+        "abstract": "Human evaluations of machine translation are extensive but expensive. Human evaluations can take months to finish and involve human labor that can not be reused. We propose a method of automatic machine translation evaluation that is quick, inexpensive, and language-independent, that correlates highly with human evaluation, and that has little marginal cost per run. We present this method as an automated understudy to skilled human judges which substitutes for them when there is need for quick or frequent evaluations.",
+        "score": 0.6467063426971436,
+        "doi": "https://doi.org/10.3115/1073083.1073135",
+        "s2_url": "https://www.semanticscholar.org/paper/d7da009f457917aa381619facfa5ffae9329a6e9"
+      },
+      {
+        "paper_id": "109867",
+        "title": "The University of Washington Machine Translation System for ACL WMT 2008",
+        "abstract": "This paper present the University of Washington's submission to the 2008 ACL SMT shared machine translation task. Two systems, for English-to-Spanish and German-to-Spanish translation are described. Our main focus was on testing a novel boosting framework for N-best list reranking and on handling German morphology in the German-to-Spanish system. While boosted N-best list reranking did not yield any improvements for this task, simplifying German morphology as part of the preprocessing step did result in significant gains.",
+        "score": 0.6545209288597107,
+        "doi": "https://doi.org/10.3115/1626394.1626408",
+        "s2_url": "https://www.semanticscholar.org/paper/52cd0c0a6d83c3eb9cce0674a8b05f8b020a18c5"
+      },
+      {
+        "paper_id": "3708537",
+        "title": "Revisiting Pivot Language Approach for Machine Translation",
+        "abstract": "This paper revisits the pivot language approach for machine translation. First, we investigate three different methods for pivot translation. Then we employ a hybrid method combining RBMT and SMT systems to fill up the data gap for pivot translation, where the source-pivot and pivot-target corpora are independent. Experimental results on spoken language translation show that this hybrid method significantly improves the translation quality, which outperforms the method using a source-target corpus of the same size. In addition, we propose a system combination approach to select better translations from those produced by various pivot translation methods. This method regards system combination as a translation evaluation problem and formalizes it with a regression learning model. Experimental results indicate that our method achieves consistent and significant improvement over individual translation outputs.",
+        "score": 0.6627461910247803,
+        "doi": "https://doi.org/10.3115/1687878.1687902",
+        "s2_url": "https://www.semanticscholar.org/paper/f09ad574d383608ec47b7fb45ba2a10a9cb4e4d5"
+      }
+    ]
+  },
+  {
+    "query": "question answering",
+    "results": [
+      {
+        "paper_id": "52186951",
+        "title": "How much should you ask? On the question structure in QA systems.",
+        "abstract": "Datasets that boosted state-of-the-art solutions for Question Answering (QA) systems prove that it is possible to ask questions in natural language manner. However, users are still used to query-like systems where they type in keywords to search for answer. In this study we validate which parts of questions are essential for obtaining valid answer. In order to conclude that, we take advantage of LIME - a framework that explains prediction by local approximation. We find that grammar and natural language is disregarded by QA. State-of-the-art model can answer properly even if ’asked’ only with a few words with high coefficients calculated with LIME. According to our knowledge, it is the first time that QA model is being explained by LIME.",
+        "score": 0.6834365129470825,
+        "doi": "https://doi.org/10.18653/v1/W18-5435",
+        "s2_url": "https://www.semanticscholar.org/paper/531afb3430accfc24b28d2a946389ae530726804"
+      },
+      {
+        "paper_id": "196170479",
+        "title": "ELI5: Long Form Question Answering",
+        "abstract": "We introduce the first large-scale corpus for long form question answering, a task requiring elaborate and in-depth answers to open-ended questions. The dataset comprises 270K threads from the Reddit forum “Explain Like I’m Five” (ELI5) where an online community provides answers to questions which are comprehensible by five year olds. Compared to existing datasets, ELI5 comprises diverse questions requiring multi-sentence answers. We provide a large set of web documents to help answer the question. Automatic and human evaluations show that an abstractive model trained with a multi-task objective outperforms conventional Seq2Seq, language modeling, as well as a strong extractive baseline.However, our best model is still far from human performance since raters prefer gold responses in over 86% of cases, leaving ample opportunity for future improvement.",
+        "score": 0.689221978187561,
+        "doi": "https://doi.org/10.18653/v1/P19-1346",
+        "s2_url": "https://www.semanticscholar.org/paper/ebf59587f8f170ff4241c42263bbfb9da5bd2135"
+      },
+      {
+        "paper_id": "131774101",
+        "title": "Advances in Natural Language Question Answering: A Review",
+        "abstract": "Question Answering has recently received high attention from artificial intelligence communities due to the advancements in learning technologies. Early question answering models used rule-based approaches and moved to the statistical approach to address the vastly available information. However, statistical approaches are shown to underperform in handling the dynamic nature and the variation of language. Therefore, learning models have shown the capability of handling the dynamic nature and variations in language. Many deep learning methods have been introduced to question answering. Most of the deep learning approaches have shown to achieve higher results compared to machine learning and statistical methods. The dynamic nature of language has profited from the nonlinear learning in deep learning. This has created prominent success and a spike in work on question answering. This paper discusses the successes and challenges in question answering question answering systems and techniques that are used in these challenges.",
+        "score": 0.6932741403579712,
+        "doi": "",
+        "s2_url": "https://www.semanticscholar.org/paper/e90d9e22dd85a56dfe7fa8e677bdb317b27a142e"
+      },
+      {
+        "paper_id": "201651170",
+        "title": "Ensemble Approach for Natural Language Question Answering Problem",
+        "abstract": "Machine comprehension, answering a question depending on a given context paragraph is a typical task of Natural Language Understanding. It requires to model complex dependencies existing between the question and the context paragraph. There are many neural network models attempting to solve the problem of question answering. One of the best models have been selected, studied and compared with each other. All the selected models are based on the neural attention mechanism concept. Additionally, studies on a SQuAD dataset were performed. The subsets of queries were extracted and then each model was analyzed how it deals with specific group of queries. The ensemble model based on Mnemonic Reader, BiDAF and QANet was created and tested on SQuAD dataset. It outperforms the best Mnemonic Reader model.",
+        "score": 0.6964366436004639,
+        "doi": "https://doi.org/10.1109/CANDARW.2019.00039",
+        "s2_url": "https://www.semanticscholar.org/paper/3dc03156959febd777496d4fb04866926784c18a"
+      },
+      {
+        "paper_id": "234093776",
+        "title": "A Dataset of Information-Seeking Questions and Answers Anchored in Research Papers",
+        "abstract": "Readers of academic research papers often read with the goal of answering specific questions. Question Answering systems that can answer those questions can make consumption of the content much more efficient. However, building such tools requires data that reflect the difficulty of the task arising from complex reasoning about claims made in multiple parts of a paper. In contrast, existing information-seeking question answering datasets usually contain questions about generic factoid-type information. We therefore present Qasper, a dataset of 5049 questions over 1585 Natural Language Processing papers. Each question is written by an NLP practitioner who read only the title and abstract of the corresponding paper, and the question seeks information present in the full text. The questions are then answered by a separate set of NLP practitioners who also provide supporting evidence to answers. We find that existing models that do well on other QA tasks do not perform well on answering these questions, underperforming humans by at least 27 F1 points when answering them from entire papers, motivating further research in document-grounded, information-seeking QA, which our dataset is designed to facilitate.",
+        "score": 0.7073167562484741,
+        "doi": "https://doi.org/10.18653/V1/2021.NAACL-MAIN.365",
+        "s2_url": "https://www.semanticscholar.org/paper/4e3935ef7da6bcbb202ec7f8b285c313cadcd044"
+      }
+    ]
+  },
+  {
+    "query": "sentiment analysis",
+    "results": [
+      {
+        "paper_id": "237362015",
+        "title": "Sentiment Analysis Using Natural Language Processing",
+        "abstract": "Abstract: In recent years, there has been an increasing interest in using natural language processing (NLP) to perform sentiment analysis. This is because NLP can help to automatically extract and identify the sentiment expressed in text data, which is often more accurate and reliable than using human annotation. There are a variety of NLP techniques that can be used for sentiment analysis, including opinion mining, text classification, and lexical analysis. Each of these methods has its own advantages and disadvantages, and the choice of technique will often depend on the type and quality of the text data that is available. In general, sentiment analysis using NLP is a very promising area of research with many potential applications. As more and more text data is generated, it will become increasingly important to be able to automatically extract the sentiment expressed in this data.",
+        "score": 0.6806610822677612,
+        "doi": "https://doi.org/10.22214/ijraset.2022.42711",
+        "s2_url": "https://www.semanticscholar.org/paper/b1cd8297dc80210207c86435e573ed4cf1a83014"
+      },
+      {
+        "paper_id": "199441526",
+        "title": "Text Sentiment Analysis: A Review",
+        "abstract": "Sentiment analysis is a big branch in the field of natural language processing. The development of text sentiment analysis not only has a great influence in the field of natural language processing, but also has a profound influence in the fields of politics, economy and social sciences which are influenced by people's subjective view. As an interdisciplinary research field, text sentiment analysis has been paid more and more attention by scholars both at home and abroad. The research process and progress of sentiment analysis on the basis of investigation and analysis are summarized in this paper. It is also introduced that the common sentiment lexicon and corpus, the sentiment analysis based on dictionary, the sentiment analysis based on the conventional machine learning algorithm and the sentiment analysis based on the deep learning algorithm. The sentiment analysis of the Chinese and some special texts are discussed. Finally, the difficulties of text sentiment analysis and the future development direction are summarized.",
+        "score": 0.6899617910385132,
+        "doi": "https://doi.org/10.1109/CompComm.2018.8780909",
+        "s2_url": "https://www.semanticscholar.org/paper/c48ff5864a3db66e0f7d9dfd89cde7afbde279e3"
+      },
+      {
+        "paper_id": "232321918",
+        "title": "NLP for Sentiment Computation",
+        "abstract": "Sentiment is natural to human beings. Sentiments are expressed in different forms ranging from written, spoken to exhibiting. Our ancient scriptures record classifications of sentiments and propose Rasa Theory as the earliest study on human mind and its expressions. At the advent of digital era, sentiments are being poured into social media. The study on computational linguistics has become encouraging in developing computational models for automatic detection of sentiments in a given text be it a document or a social media posting though both the varieties project different class of problems for finding sentiments with them. This article discusses on some linguistic approaches known in the paradigm of natural language processing and their uses in sentiment detection. The approaches discussed are lexical analysis, corpora based, aspect based, social semantics and the trends of research in this field. It also discusses on exploring sentiments in a text of multiple domains.",
+        "score": 0.7330714464187622,
+        "doi": "https://doi.org/10.1007/978-981-33-6815-6_1",
+        "s2_url": "https://www.semanticscholar.org/paper/295a70285092d7f7437b7981576d1e7d47379daa"
+      },
+      {
+        "paper_id": "5162011",
+        "title": "Linguistic Understanding of Complaints and Praises in User Reviews",
+        "abstract": "Traditional sentiment analysis has been focused on predicting the polarity of texts as positive or negative at different granularity. This broad categorization does not account for informativeness of the underlying text. For many real-world applications such as social listening, brand monitoring and e-commerce platforms, the opinions that really matter are the informative opinions describing why something is good or bad. In this paper, we try to understand the properties of complaints and praises which is an informative subset of the negative and positive categories. Our analysis in the context of user reviews shows that complaints and praises have distinct properties that differentiate it from positive only or negative only sentences.",
+        "score": 0.7535058259963989,
+        "doi": "https://doi.org/10.18653/v1/W16-0418",
+        "s2_url": "https://www.semanticscholar.org/paper/8f88901a14ee01bdb65af9b82c16392ca080232d"
+      },
+      {
+        "paper_id": "234365972",
+        "title": "Sentiment Analysis on Twitter by Using TextBlob for Natural Language Processing",
+        "abstract": "— The Internet has become an innovative platform regarding online learning, exchanging content, sharing views. In this paper, we will use Twitter as our social networking platform. Sentiment analysis on Twitter is based on opinion mining on posts to obtain the user’s point of view. The leading goal deals with how opinion mining techniques can be accessed to analyze some of the tweets in many reports involving various types of tweet languages on Twitter and classify its polarity. Practical implication shows that the proposed machine learning classifiers are efficient and highly accurate.",
+        "score": 0.766403079032898,
+        "doi": "https://doi.org/10.15439/2020KM20",
+        "s2_url": "https://www.semanticscholar.org/paper/16b5eee5735396453f9a1dd607c12e110b4f6934"
+      }
+    ]
+  },
+  {
+    "query": "information retrieval nlp",
+    "results": [
+      {
+        "paper_id": "3035418",
+        "title": "Information Retrieval Using Robust Natural Language Processing",
+        "abstract": "We developed a prototype information retrieval system which uses advanced natural language processing techniques to enhance the effectiveness of traditional key-word based document retrieval. The backbone of our system is a statistical retrieval engine which performs automated indexing of documents, then search and ranking in response to user queries. This core architecture is augmented with advanced natural language processing tools which are both robust and efficient. In early experiments, the augmented system has displayed capabilities that appear to make it superior to the purely statistical base.",
+        "score": 0.7069412469863892,
+        "doi": "https://doi.org/10.3115/981967.981981",
+        "s2_url": "https://www.semanticscholar.org/paper/ed79b1ff10c3f6b6ce3bb8249148d20e67fca1ba"
+      },
+      {
+        "paper_id": "1743238",
+        "title": "Representation of Texts for Information Retrieval",
+        "abstract": "Representation Evaluation % YES % NO % % NO INTERM. RESP.",
+        "score": 0.7146345376968384,
+        "doi": "https://doi.org/10.3115/981436.981482",
+        "s2_url": "https://www.semanticscholar.org/paper/fd1615244d1206ae341c4a9fc8a87ff90a32051c"
+      },
+      {
+        "paper_id": "270688765",
+        "title": "NLP-KG: A System for Exploratory Search of Scientific Literature in Natural Language Processing",
+        "abstract": "Scientific literature searches are often exploratory, whereby users are not yet familiar with a particular field or concept but are interested in learning more about it. However, existing systems for scientific literature search are typically tailored to keyword-based lookup searches, limiting the possibilities for exploration. We propose NLP-KG, a feature-rich system designed to support the exploration of research literature in unfamiliar natural language processing (NLP) fields. In addition to a semantic search, NLP-KG allows users to easily find survey papers that provide a quick introduction to a field of interest. Further, a Fields of Study hierarchy graph enables users to familiarize themselves with a field and its related areas. Finally, a chat interface allows users to ask questions about unfamiliar concepts or specific articles in NLP and obtain answers grounded in knowledge retrieved from scientific publications. Our system provides users with comprehensive exploration possibilities, supporting them in investigating the relationships between different fields, understanding unfamiliar concepts in NLP, and finding relevant research literature. Demo, video, and code are available at: https://github.com/NLP-Knowledge-Graph/NLP-KG-WebApp.",
+        "score": 0.7431558966636658,
+        "doi": "https://doi.org/10.48550/arXiv.2406.15294",
+        "s2_url": "https://www.semanticscholar.org/paper/207fda76a3d2c78069390ab2f356fb3888ede8a3"
+      },
+      {
+        "paper_id": "274863170",
+        "title": "Text Categorization for Information Retrieval Using NLP Models",
+        "abstract": "The paper presents the state-of-the-art natural language processing (NLP) models and methods, such as BERT and DistilBERT, to evaluate textual data and extract noteworthy insights. Preprocessing textual input, tokenization, and the implementation of deep learning architectures such as bidirectional LSTMs for classification tasks are all components of the approach that has been presented. To achieve the goal of producing accurate prediction models with the least amount of validation loss possible. Natural language processing (NLP) is a major focus of the manuscript in multiple areas such as sentiment analysis, language understanding, and text classification. The results show that our proposed NLP models perform exceptionally well. Long-term memory and natural language processing (NLP) go hand in hand. Therefore, these results demonstrate the value and relevance of our natural language processing approach to obtaining unstructured text data to improve and develop a variety of applications, such as chatbots, virtual assistants, and information retrieval systems, as well as to gain insights and help make better decisions, and the flexibility and generalizability of the models, while confirming their ability to handle a range of activities and textual materials. Excellent and accurate results were obtained in terms of validation, with the experimental models often exceeding the 99.85% accuracy benchmark. Another crucial factor to consider is that the average validation loss metrics for all tests remained remarkably low at 0.0058.",
+        "score": 0.7474772930145264,
+        "doi": "https://doi.org/10.54216/jcim.150223",
+        "s2_url": "https://www.semanticscholar.org/paper/fedf7b37046146b4446e19086c8d8496bd75cf96"
+      },
+      {
+        "paper_id": "616564",
+        "title": "Extracting World and Linguistic Knowledge from Wikipedia",
+        "abstract": "Many research efforts have been devoted to develop robust statistical modeling techniques for many NLP tasks. Our field is now moving towards more complex tasks (e.g. RTE, QA), which require to complement these methods with a semantically rich representation based on world and linguistic knowledge (i.e. annotated linguistic data). In this tutorial we show several approaches to extract this knowledge from Wikipedia. This resource has attracted the attention of much work in the AI community, mainly because it provides semi-structured information and a large amount of manual annotations. The purpose of this tutorial is to introduce Wikipedia as a resource to the NLP community and to provide an introduction for NLP researchers both from a scientific and a practical (i.e. data acquisition and processing issues) perspective.",
+        "score": 0.749182403087616,
+        "doi": "https://doi.org/10.3115/1620950.1620954",
+        "s2_url": "https://www.semanticscholar.org/paper/f50ca21c8eda061b26176ce3ed698502b38373c1"
+      }
+    ]
+  },
+  {
+    "query": "how computers understand human language",
+    "results": [
+      {
+        "paper_id": "47329464",
+        "title": "Computational Modeling of Human Language Acquisition",
+        "abstract": "The nature and amount of information needed for learning a natural language, and the underlying mechanisms involved in this process, are the subject of much debate: is it possible to learn a language from usage data only, or some sort of innate knowledge and/or bias is needed to boost the process? This is a topic of interest to (psycho)linguists who study human language acquisition, as well as computational linguists who develop the knowledge sources necessary for largescale natural language processing systems. Children are a source of inspiration for any such study of language learnability. They learn language with ease, and their acquired knowledge of language is flexible and robust.",
+        "score": 0.7032074928283691,
+        "doi": "https://doi.org/10.1162/COLI_r_00067",
+        "s2_url": "https://www.semanticscholar.org/paper/d4de4bf776eedc1bbefb0f0a9246352cae37b0f7"
+      },
+      {
+        "paper_id": "17549909",
+        "title": "Dictionaries of the Mind",
+        "abstract": "How lexical information should be formulated, and how it is organized in computer memory for rapid retrieval, are central questions for computational linguists who want to create systems for language understanding. How lexical knowledge is acquired, and how it is organized in human memory for rapid retrieval during language use, are also central questions for cognitive psychologists. Some examples of psycholinguistic research on the lexical component of language are reviewed with special attention to their implications for the computational problem.",
+        "score": 0.8764181137084961,
+        "doi": "https://doi.org/10.3115/981210.981248",
+        "s2_url": "https://www.semanticscholar.org/paper/a951b80817c9ce7e6a0d18a42592bcfb048452ed"
+      },
+      {
+        "paper_id": "10878179",
+        "title": "Natural vs. Precise Concise Languages for Human Operation of Computers: Research Issues and Experimental Approaches",
+        "abstract": "This paper raises concerns that natural language front ends for computer systems can limit a researcher's scope of thinking, yield inappropriately complex systems, and exaggerate public fear of computers. Alternative modes of computer use are suggested and the role of psychologically oriented controlled experimentation is emphasized. Research methods and recent experimental results are briefly reviewed.",
+        "score": 0.9196927547454834,
+        "doi": "https://doi.org/10.3115/981436.981478",
+        "s2_url": "https://www.semanticscholar.org/paper/7f1195b5d93c3ec91333cb0859a6a8458d88426f"
+      },
+      {
+        "paper_id": "57350096",
+        "title": "Toward a Computational Theory of Speech Perception",
+        "abstract": "In recent years, a great deal of evidence has been collected which gives substantially increased insight into the nature of human speech perception. It is the author's belief that such data can be effectively used to infer much of the structure of a practical speech recognition system. This paper details a new view of the role of structural constraints within the several structural domains (e. g. articulation, phonetics, phonology, syntax, semantics) that must be utilized to infer the desired percept.",
+        "score": 0.9308204054832458,
+        "doi": "https://doi.org/10.3115/982163.982169",
+        "s2_url": "https://www.semanticscholar.org/paper/d9508771de1f0e28846ee674544ece0cbe3e07a4"
+      },
+      {
+        "paper_id": "5477691",
+        "title": "The Pragmatics of Taking a Spoken Language System Out of the Laboratory",
+        "abstract": "Lockheed Martin's Advanced Technology Laboratories has been designing, developing, testing, and evaluating spoken language understanding systems in several unique operational environments over the past five years. Through these experiences we have encountered numerous challenges in making each system become an integral part of a user's operations. In this paper, we discuss these challenges and report how we overcame them with respect to a number of domains.",
+        "score": 0.9366845488548279,
+        "doi": "https://doi.org/10.3115/1118927.1118933",
+        "s2_url": "https://www.semanticscholar.org/paper/cfb068d14699dd742ec581574e854944c11a6f33"
+      }
+    ]
+  },
+  {
+    "query": "making models smaller and faster",
+    "results": [
+      {
+        "paper_id": "271923582",
+        "title": "LEMON: Reviving Stronger and Smaller LMs from Larger LMs with Linear Parameter Fusion",
+        "abstract": "In the new era of language models, small models (with billions of parameter sizes) are receiving increasing attention due to their flexibility and cost-effectiveness in deployment. However, limited by the model size, the performance of small models trained from scratch may often be unsatisfactory. Learning a stronger and smaller model with the help of larger models is an intuitive idea. Inspired by the observing modular structures in preliminary analysis, we pro-pose L EMON to learn competent initial points for smaller models by fusing parameters from larger models, thereby laying a solid foundation for subsequent training. Specifically, the parameter fusion process involves two operators for layer and dimension, respectively, and we also introduce controllable receptive fields to model the prior parameter characteristics. In this way, the larger model could be transformed into any specific smaller scale and architecture. Starting from LLaMA 2-7B, we revive two stronger and smaller models with 1.3B and 2.7B. Experimental results demonstrate that the fusion-based method exhibits flexibility and outperforms a series of competitive baselines in terms of both effectiveness and efficiency.",
+        "score": 1.0211777687072754,
+        "doi": "https://doi.org/10.18653/v1/2024.acl-long.434",
+        "s2_url": "https://www.semanticscholar.org/paper/6e388b91a1749970247b465d1d92ec810137c03b"
+      },
+      {
+        "paper_id": "260900101",
+        "title": "A Survey on Model Compression for Large Language Models",
+        "abstract": "Abstract Large Language Models (LLMs) have transformed natural language processing tasks successfully. Yet, their large size and high computational needs pose challenges for practical use, especially in resource-limited settings. Model compression has emerged as a key research area to address these challenges. This paper presents a survey of model compression techniques for LLMs. We cover methods like quantization, pruning, and knowledge distillation, highlighting recent advancements. We also discuss benchmarking strategies and evaluation metrics crucial for assessing compressed LLMs. This survey offers valuable insights for researchers and practitioners, aiming to enhance efficiency and real-world applicability of LLMs while laying a foundation for future advancements.",
+        "score": 1.0664440393447876,
+        "doi": "https://doi.org/10.1162/tacl_a_00704",
+        "s2_url": "https://www.semanticscholar.org/paper/338d8f3b199abcebc85f34016b0162ab3a9d5310"
+      },
+      {
+        "paper_id": "259360526",
+        "title": "OpenDelta: A Plug-and-play Library for Parameter-efficient Adaptation of Pre-trained Models",
+        "abstract": "The scale of large pre-trained models (PTMs) poses significant challenges in adapting to downstream tasks due to the high optimization overhead and storage costs associated with full-parameter fine-tuning. To address this, many studies explore parameter-efficient tuning methods, also framed as “delta tuning” in Ding et al. (2022), which updates only a small subset of parameters, known as “delta modules”, while keeping the backbone model’s parameters fixed. However, the practicality and flexibility of delta tuning have been limited due to existing implementations that directly modify the code of the backbone PTMs and hard-code specific delta tuning methods for each PTM. In this paper, we present OpenDelta, an open-source library that overcomes these limitations by providing a plug-and-play implementation of various delta tuning methods. Our novel techniques eliminate the need to modify the backbone PTMs’ code, making OpenDelta compatible with different, even novel PTMs. OpenDelta is designed to be simple, modular, and extensible, providing a comprehensive platform for researchers and practitioners to adapt large PTMs efficiently.",
+        "score": 1.1106536388397217,
+        "doi": "https://doi.org/10.48550/arXiv.2307.03084",
+        "s2_url": "https://www.semanticscholar.org/paper/a6a436e54af12b22d5f15d1797ec8a9a04415be1"
+      },
+      {
+        "paper_id": "276421903",
+        "title": "Revisiting the Test-Time Scaling of o1-like Models: Do they Truly Possess Test-Time Scaling Capabilities?",
+        "abstract": "The advent of test-time scaling in large language models (LLMs), exemplified by OpenAI's o1 series, has advanced reasoning capabilities by scaling computational resource allocation during inference. While successors like QwQ, Deepseek-R1 (R1) and LIMO replicate these advancements, whether these models truly possess test-time scaling capabilities remains underexplored. This study found that longer CoTs of these o1-like models do not consistently enhance accuracy; in fact, correct solutions are often shorter than incorrect ones for the same questions. Further investigation shows this phenomenon is closely related to models' self-revision capabilities - longer CoTs contain more self-revisions, which often lead to performance degradation. We then compare sequential and parallel scaling strategies on QwQ, R1 and LIMO, finding that parallel scaling achieves better coverage and scalability. Based on these insights, we propose Shortest Majority Vote, a method that combines parallel scaling strategies with CoT length characteristics, significantly improving models' test-time scalability compared to conventional majority voting approaches.",
+        "score": 1.1230547428131104,
+        "doi": "https://doi.org/10.48550/arXiv.2502.12215",
+        "s2_url": "https://www.semanticscholar.org/paper/acf24131433fabf6304b27f2466445199d91a418"
+      },
+      {
+        "paper_id": "247922354",
+        "title": "Structured Pruning Learns Compact and Accurate Models",
+        "abstract": "The growing size of neural language models has led to increased attention in model compression. The two predominant approaches are pruning, which gradually removes weights from a pre-trained model, and distillation, which trains a smaller compact model to match a larger one. Pruning methods can significantly reduce the model size but hardly achieve large speedups as distillation. However, distillation methods require large amounts of unlabeled data and are expensive to train. In this work, we propose a task-specific structured pruning method CoFi (Coarse- and Fine-grained Pruning), which delivers highly parallelizable subnetworks and matches the distillation methods in both accuracy and latency, without resorting to any unlabeled data. Our key insight is to jointly prune coarse-grained (e.g., layers) and fine-grained (e.g., heads and hidden units) modules, which controls the pruning decision of each parameter with masks of different granularity. We also devise a layerwise distillation strategy to transfer knowledge from unpruned to pruned models during optimization. Our experiments on GLUE and SQuAD datasets show that CoFi yields models with over 10X speedups with a small accuracy drop, showing its effectiveness and efficiency compared to previous pruning and distillation approaches.",
+        "score": 1.176796555519104,
+        "doi": "https://doi.org/10.48550/arXiv.2204.00408",
+        "s2_url": "https://www.semanticscholar.org/paper/9e82736043eebe3f71eb86cbef6e2ac45306ece5"
+      }
+    ]
+  },
+  {
+    "query": "teaching ai to follow instructions",
+    "results": [
+      {
+        "paper_id": "5249151",
+        "title": "Reinforcement Learning for Mapping Instructions to Actions",
+        "abstract": "In this paper, we present a reinforcement learning approach for mapping natural language instructions to sequences of executable actions. We assume access to a reward function that defines the quality of the executed actions. During training, the learner repeatedly constructs action sequences for a set of documents, executes those actions, and observes the resulting reward. We use a policy gradient algorithm to estimate the parameters of a log-linear model for action selection. We apply our method to interpret instructions in two domains --- Windows troubleshooting guides and game tutorials. Our results demonstrate that this method can rival supervised learning techniques while requiring few or no annotated training examples.",
+        "score": 0.8071074485778809,
+        "doi": "https://doi.org/10.3115/1687878.1687892",
+        "s2_url": "https://www.semanticscholar.org/paper/cc1648c91ffda21bbe6e5f08f69c683588fc384c"
+      },
+      {
+        "paper_id": "256876814",
+        "title": "Pre-trained Bert for Natural Language Guided Reinforcement Learning in Atari Game",
+        "abstract": "Inspired by the dream of using natural language to guide an Agent, we propose a language understanding model that links natural language commands with particular target states, so that the agent can better understand the tasks expressed in natural language. The agent performs exploration in the environment according to human intentions through the decision-making method of reinforcement learning, which will improve the performance and efficiency of exploration. By using the most advanced text-based pre-trained language model Bert, the language understanding model is robust to human commands.",
+        "score": 0.833264172077179,
+        "doi": "https://doi.org/10.1109/CCDC55256.2022.10033434",
+        "s2_url": "https://www.semanticscholar.org/paper/8d3eccbf3fe50949c0b14192ecd0b15286a706fb"
+      },
+      {
+        "paper_id": "215717032",
+        "title": "Learning to Interpret Natural Language Navigation Instructions from Observations",
+        "abstract": "\n \n The ability to understand natural-language instructions is critical to building intelligent agents that interact with humans. We present a system that learns to transform natural-language navigation instructions into executable formal plans. Given no prior linguistic knowledge, the system learns by simply observing how humans follow navigation instructions. The system is evaluated in three complex virtual indoor environments with numerous objects and landmarks. A previously collected realistic corpus of complex English navigation instructions for these environments is used for training and testing data. By using a learned lexicon to refine inferred plans and a supervised learner to induce a semantic parser, the system is able to automatically learnto correctly interpret a reasonable fraction of the complex instructions in this corpus.\n \n",
+        "score": 0.8403067588806152,
+        "doi": "https://doi.org/10.1609/aaai.v25i1.7974",
+        "s2_url": "https://www.semanticscholar.org/paper/4b17662f21c6313907a022af20f88616d11620eb"
+      },
+      {
+        "paper_id": "235097446",
+        "title": "Generalization in Instruction Following Systems",
+        "abstract": "Understanding and executing natural language instructions in a grounded domain is one of the hallmarks of artificial intelligence. In this paper, we focus on instruction understanding in the blocks world domain and investigate the language understanding abilities of two top-performing systems for the task. We aim to understand if the test performance of these models indicates an understanding of the spatial domain and of the natural language instructions relative to it, or whether they merely over-fit spurious signals in the dataset. We formulate a set of expectations one might have from an instruction following model and concretely characterize the different dimensions of robustness such a model should possess. Despite decent test performance, we find that state-of-the-art models fall short of these expectations and are extremely brittle. We then propose a learning strategy that involves data augmentation and show through extensive experiments that the proposed learning strategy yields models that are competitive on the original test set while satisfying our expectations much better.",
+        "score": 0.8542884588241577,
+        "doi": "https://doi.org/10.18653/V1/2021.NAACL-MAIN.76",
+        "s2_url": "https://www.semanticscholar.org/paper/b2d08f6e17882545b2cbb865fd8c907eb21c3aac"
+      },
+      {
+        "paper_id": "238259902",
+        "title": "Skill Induction and Planning with Latent Language",
+        "abstract": "We present a framework for learning hierarchical policies from demonstrations, using sparse natural language annotations to guide the discovery of reusable skills for autonomous decision-making. We formulate a generative model of action sequences in which goals generate sequences of high-level subtask descriptions, and these descriptions generate sequences of low-level actions. We describe how to train this model using primarily unannotated demonstrations by parsing demonstrations into sequences of named high-level sub-tasks, using only a small number of seed annotations to ground language in action. In trained models, natural language commands index a combinatorial library of skills; agents can use these skills to plan by generating high-level instruction sequences tailored to novel goals. We evaluate this approach in the ALFRED household simulation environment, providing natural language annotations for only 10% of demonstrations. It achieves performance comparable state-of-the-art models on ALFRED success rate, outperforming several recent methods with access to ground-truth plans during training and evaluation.",
+        "score": 0.8664616942405701,
+        "doi": "https://doi.org/10.18653/v1/2022.acl-long.120",
+        "s2_url": "https://www.semanticscholar.org/paper/2d4ca959cb3d544473cb661cefe76daabebcdff3"
+      }
+    ]
+  },
+  {
+    "query": "translating between different languages",
+    "results": [
+      {
+        "paper_id": "18858071",
+        "title": "A New View on the Process of Translation",
+        "abstract": "In this paper we describe a framework for research into translation that draws on a combination of two existing and independently constructed technologies: an analysis component developed for German by the EUROTRA-D (ET-D) group of IAI and the generation component developed for English by the Penman group at ISI. We present some of the linguistic implications of the research and the promise it bears for furthering understanding of the translation process.",
+        "score": 0.7790936231613159,
+        "doi": "https://doi.org/10.3115/976815.976853",
+        "s2_url": "https://www.semanticscholar.org/paper/300dceaadbc975d1c744f8dfa294ba4f67305294"
+      },
+      {
+        "paper_id": "2926101",
+        "title": "Deep Linguistic Multilingual Translation and Bilingual Dictionaries",
+        "abstract": "This paper describes the MulTra project, aiming at the development of an efficient multilingual translation technology based on an abstract and generic linguistic model as well as on object-oriented software design. In particular, we will address the issue of the rapid growth both of the transfer modules and of the bilingual databases. For the latter, we will show that a significant part of bilingual lexical databases can be derived automatically through transitivity, with corpus validation.",
+        "score": 0.7997995615005493,
+        "doi": "https://doi.org/10.3115/1626431.1626450",
+        "s2_url": "https://www.semanticscholar.org/paper/1010a55c178da57ef933092e5c8bdc7b231b4a4e"
+      },
+      {
+        "paper_id": "13038579",
+        "title": "Phrase translation using a bilingual dictionary and n-gram data: A case study from Vietnamese to English",
+        "abstract": "Past approaches to translate a phrase in a language L1 to a language L2 using a dictionarybased approach require grammar rules to restructure initial translations. This paper introduces a novel method without using any grammar rules to translate a given phrase in L1, which does not exist in the dictionary, to L2. We require at least one L1‐L2 bilingual dictionary and n-gram data in L2. The average manual evaluation score of our translations is 4.29/5.00, which implies very high quality.",
+        "score": 0.8358245491981506,
+        "doi": "https://doi.org/10.3115/v1/W15-0911",
+        "s2_url": "https://www.semanticscholar.org/paper/7f9260f398004c82ed541c723602e9a734917dad"
+      },
+      {
+        "paper_id": "232135331",
+        "title": "Hierarchical Transformer for Multilingual Machine Translation",
+        "abstract": "The choice of parameter sharing strategy in multilingual machine translation models determines how optimally parameter space is used and hence, directly influences ultimate translation quality. Inspired by linguistic trees that show the degree of relatedness between different languages, the new general approach to parameter sharing in multilingual machine translation was suggested recently. The main idea is to use these expert language hierarchies as a basis for multilingual architecture: the closer two languages are, the more parameters they share. In this work, we test this idea using the Transformer architecture and show that despite the success in previous work there are problems inherent to training such hierarchical models. We demonstrate that in case of carefully chosen training strategy the hierarchical architecture can outperform bilingual models and multilingual models with full parameter sharing.",
+        "score": 0.8466891646385193,
+        "doi": "",
+        "s2_url": "https://www.semanticscholar.org/paper/821fac667c95b426a64ecf9763a5a077bdf7643c"
+      },
+      {
+        "paper_id": "49560309",
+        "title": "A Neural Approach to Language Variety Translation",
+        "abstract": "In this paper we present the first neural-based machine translation system trained to translate between standard national varieties of the same language. We take the pair Brazilian - European Portuguese as an example and compare the performance of this method to a phrase-based statistical machine translation system. We report a performance improvement of 0.9 BLEU points in translating from European to Brazilian Portuguese and 0.2 BLEU points when translating in the opposite direction. We also carried out a human evaluation experiment with native speakers of Brazilian Portuguese which indicates that humans prefer the output produced by the neural-based system in comparison to the statistical system.",
+        "score": 0.8803709745407104,
+        "doi": "",
+        "s2_url": "https://www.semanticscholar.org/paper/d067f87bd885f6e73fefa375f895da175ddaa40d"
+      }
+    ]
+  },
+  {
+    "query": "summarizing long articles into short bullets",
+    "results": [
+      {
+        "paper_id": "272603142",
+        "title": "Does the structure of textual content have an impact on language models for automatic summarization?",
+        "abstract": "Despite recent improvements, the processing of long sequences with Transformers models remains a subject in its own right, including automatic summary. In this work, we present experiments on the automatic summarization of scientific articles using BART models, considering textual information coming from distinct passages from long texts for summarization. We demonstrate that considering document structure improves the performance of state-of-the-art models and approaches the performance of LongFormer in English.",
+        "score": 0.7116137146949768,
+        "doi": "https://doi.org/10.18653/v1/2024.acl-srw.25",
+        "s2_url": "https://www.semanticscholar.org/paper/7365e6fc8e83cc44e1e24aea4b97f2e22c1fd50e"
+      },
+      {
+        "paper_id": "261920204",
+        "title": "Automatic Short Text Summarization Techniques in Social Media Platforms",
+        "abstract": "The rapid expansion of social media platforms has resulted in an unprecedented surge of short text content being generated on a daily basis. Extracting valuable insights and patterns from this vast volume of textual data necessitates specialized techniques that can effectively condense information while preserving its core essence. In response to this challenge, automatic short text summarization (ASTS) techniques have emerged as a compelling solution, gaining significant importance in their development. This paper delves into the domain of summarizing short text on social media, exploring various types of short text and the associated challenges they present. It also investigates the approaches employed to generate concise and meaningful summaries. By providing a survey of the latest methods and potential avenues for future research, this paper contributes to the advancement of ASTS in the ever-evolving landscape of social media communication.",
+        "score": 0.7637797594070435,
+        "doi": "https://doi.org/10.3390/fi15090311",
+        "s2_url": "https://www.semanticscholar.org/paper/5fa280ce2d7ca1c2df1b14c48b998bd9ace52bb4"
+      },
+      {
+        "paper_id": "246217795",
+        "title": "Extractive text summarization for scientific journal articles using long short-term memory and gated recurrent units",
+        "abstract": "Along with the increasing number of scientific publications, many scientific communities must read the entire text to get the essence of information from a journal article. This will be quite inconvenient if the scientific journal article is quite long and there are more than one journals. Motivated by this problem, encourages the need for a method of text summarization that can automatically, concisely, and accurately summarize a scientific article document. The purpose of this research is to create an extractive text summarization by doing feature engineering to extract the semantic information from the original text. Comparing the long short-term memory algorithm and gated recurrent units and were used to get the most relevant sentences to be served as a summary. The results showed that both algorithms yielded relatively similar accuracy results, with gated recurrent units at 98.40% and long short-term memory at 98.68%. The evaluation method with matrix recall-oriented understudy for gisting evaluation (ROUGE) is used to evaluate the summary results. The summary results produced by the LSTM model compared to the summary results using the latent semantic analysis (LSA) method were then obtained recall values at ROUGE-1, ROUGE-2, and ROUGE-L respectively were 76.25%, 59.49%, and 72.72%.",
+        "score": 0.8024727702140808,
+        "doi": "https://doi.org/10.11591/eei.v11i1.3278",
+        "s2_url": "https://www.semanticscholar.org/paper/3becb9cefe246a9b633f738346f5210214022656"
+      },
+      {
+        "paper_id": "196130374",
+        "title": "Automated Text Summarization for Indonesian Article Using Vector Space Model",
+        "abstract": "In a scientific work, an abstract always contains main information of an article including at least a researched problem, aim(s), methodology, and result of the study. Writing an abstract requires a conscientious analysis since the contents would affect both the readers’ interestedness and disinterestedness on a particular or overall research topic. However, people generally write manually by summarizing the article. The aim of this study is constructing automation for summarizing Indonesian articles as an alternative approach to an abstract. This is involving two methods to summarize an article. A Term Frequency-inverse Document Frequency is used to get a keyword and weight terms, and a Vector Space Model is utilized to represent abstract text into a vector that used to identify the linkage of documents. From this method, the result of the summary can be generated from documents. Supporting this research, we used several journal articles written by a manual abstract. The results of this application show that the automatic summarization produces a paragraph which consists of more than three same sentences constantly as compared to manual paragraphing.",
+        "score": 0.8406752943992615,
+        "doi": "https://doi.org/10.1088/1757-899X/288/1/012037",
+        "s2_url": "https://www.semanticscholar.org/paper/553b9c88f5b1f8be4c0be0ed28f29b453948d794"
+      },
+      {
+        "paper_id": "238413847",
+        "title": "Analytical study of Text Summarization Techniques",
+        "abstract": "Summarization of Text is extracting important information from a body of text and present it in the form of a concise summary. The need for summarization has increased in recent times. The importance of having a simple concise summary of information in the news, business and research domains is paramount. Automatic text summarization is a well known task in the NLP (Natural Language Processing) field. Text Summarization techniques can be large divided into two groups: Extractive summarization and Abstractive summarization. Extractive summarization is based on identifying key sentences or phrases from the source text and grouping them to produce a summary without rewriting or paraphrasing the original text. Abstractive summarization is based on utilizing a deeper understanding of the source text and generating new sentences, not present in the original text, which improves the summary by reducing redundancy and focusing on the meaning of the source text. In this study we implement and compare the performance of various automatic summarization methods in order to gain insight into how long the methods take to implement and how accurate and human-like the generated summaries are. We aim to learn the pros and cons of the various techniques used by utilizing summary scoring as well as manual inspection of generated summary.",
+        "score": 0.8445516228675842,
+        "doi": "https://doi.org/10.1109/ASIANCON51346.2021.9544804",
+        "s2_url": "https://www.semanticscholar.org/paper/057f351367ae8b909322330c18963c3e18cb8ed0"
+      }
+    ]
+  },
+  {
+    "query": "checking if a review is happy or sad",
+    "results": [
+      {
+        "paper_id": "5162011",
+        "title": "Linguistic Understanding of Complaints and Praises in User Reviews",
+        "abstract": "Traditional sentiment analysis has been focused on predicting the polarity of texts as positive or negative at different granularity. This broad categorization does not account for informativeness of the underlying text. For many real-world applications such as social listening, brand monitoring and e-commerce platforms, the opinions that really matter are the informative opinions describing why something is good or bad. In this paper, we try to understand the properties of complaints and praises which is an informative subset of the negative and positive categories. Our analysis in the context of user reviews shows that complaints and praises have distinct properties that differentiate it from positive only or negative only sentences.",
+        "score": 1.1054766178131104,
+        "doi": "https://doi.org/10.18653/v1/W16-0418",
+        "s2_url": "https://www.semanticscholar.org/paper/8f88901a14ee01bdb65af9b82c16392ca080232d"
+      },
+      {
+        "paper_id": "258674187",
+        "title": "Product Review System With BERT for Sentiment Analysis and Implementation of Administrative Privileges on Node-RED",
+        "abstract": "There are many ways to collect the product review, either by using a website or by manually asking the customers to leave their comments after buying the product. The traditional product feedback process is time-consuming. Nowadays, although industries use online review system to rate their product, the process lacks modernization. In this paper, BERT sentiment analysis is used to process the product review from the customers and automatically convert the review into a numeric score. This average score value is used for processing the sentiment analysis. The system is built entirely on Node-RED as a backbone to gather the review from the users with certain administrator privileges. An interactive dashboard is created to analyze the feedback of the product review. The above method of review system also reduces malpractice that the manufacturer or service provider may indulge into increase their ratings.",
+        "score": 1.2278003692626953,
+        "doi": "https://doi.org/10.1109/ACCESS.2023.3275738",
+        "s2_url": "https://www.semanticscholar.org/paper/c2f52b62ebed2428bc14e747458371692aaa9337"
+      },
+      {
+        "paper_id": "272987938",
+        "title": "CRScore: Grounding Automated Evaluation of Code Review Comments in Code Claims and Smells",
+        "abstract": "The task of automated code review has recently gained a lot of attention from the machine learning community. However, current review comment evaluation metrics rely on comparisons with a human-written reference for a given code change (also called a diff). Furthermore, code review is a one-to-many problem, like generation and summarization, with many\"valid reviews\"for a diff. Thus, we develop CRScore - a reference-free metric to measure dimensions of review quality like conciseness, comprehensiveness, and relevance. We design CRScore to evaluate reviews in a way that is grounded in claims and potential issues detected in the code by LLMs and static analyzers. We demonstrate that CRScore can produce valid, fine-grained scores of review quality that have the greatest alignment with human judgment among open source metrics (0.54 Spearman correlation) and are more sensitive than reference-based metrics. We also release a corpus of 2.9k human-annotated review quality scores for machine-generated and GitHub review comments to support the development of automated metrics.",
+        "score": 1.228369951248169,
+        "doi": "https://doi.org/10.48550/arXiv.2409.19801",
+        "s2_url": "https://www.semanticscholar.org/paper/3e619426abe1392eb17ccd2ed92191ca57d00fcd"
+      },
+      {
+        "paper_id": "235097424",
+        "title": "Why Do Document-Level Polarity Classifiers Fail?",
+        "abstract": "Machine learning solutions are often criticized for the lack of explanation of their successes and failures. Understanding which instances are misclassified and why is essential to improve the learning process. This work helps to fill this gap by proposing a methodology to characterize, quantify and measure the impact of hard instances in the task of polarity classification of movie reviews. We characterize such instances into two categories: neutrality, where the text does not convey a clear polarity, and discrepancy, where the polarity of the text is the opposite of its true rating. We quantify the number of hard instances in polarity classification of movie reviews and provide empirical evidence about the need to pay attention to such problematic instances, as they are much harder to classify, for both machine and human classifiers. To the best of our knowledge, this is the first systematic analysis of the impact of hard instances in polarity detection from well-formed textual reviews.",
+        "score": 1.2563562393188477,
+        "doi": "https://doi.org/10.18653/V1/2021.NAACL-MAIN.143",
+        "s2_url": "https://www.semanticscholar.org/paper/aea74e30391abe22c43042f212c7891fcc7cf456"
+      },
+      {
+        "paper_id": "265157492",
+        "title": "Automated title and abstract screening for scoping reviews using the GPT-4 Large Language Model",
+        "abstract": "Scoping reviews, a type of literature review, require intensive human effort to screen large numbers of scholarly sources for their relevance to the review objectives. This manuscript introduces GPTscreenR, a package for the R statistical programming language that uses the GPT-4 Large Language Model (LLM) to automatically screen sources. The package makes use of the chain-of-thought technique with the goal of maximising performance on complex screening tasks. In validation against consensus human reviewer decisions, GPTscreenR performed similarly to an alternative zero-shot technique, with a sensitivity of 71%, specificity of 89%, and overall accuracy of 84%. Neither method achieved perfect accuracy nor human levels of intraobserver agreement. GPTscreenR demonstrates the potential for LLMs to support scholarly work and provides a user-friendly software framework that can be integrated into existing review processes.",
+        "score": 1.2654895782470703,
+        "doi": "https://doi.org/10.48550/arXiv.2311.07918",
+        "s2_url": "https://www.semanticscholar.org/paper/024c14798ea29116321199619eae657eaea09469"
+      }
+    ]
+  },
+  {
+    "query": "fixing mistakes or lies in ai answers",
+    "results": [
+      {
+        "paper_id": "219182195",
+        "title": "Learning to Classify the Wrong Answers for Multiple Choice Question Answering (Student Abstract)",
+        "abstract": "Multiple-Choice Question Answering (MCQA) is the most challenging area of Machine Reading Comprehension (MRC) and Question Answering (QA), since it not only requires natural language understanding, but also problem-solving techniques. We propose a novel method, Wrong Answer Ensemble (WAE), which can be applied to various MCQA tasks easily. To improve performance of MCQA tasks, humans intuitively exclude unlikely options to solve the MCQA problem. Mimicking this strategy, we train our model with the wrong answer loss and correct answer loss to generalize the features of our model, and exclude likely but wrong options. An experiment on a dialogue-based examination dataset shows the effectiveness of our approach. Our method improves the results on a fine-tuned transformer by 2.7%.",
+        "score": 1.0008537769317627,
+        "doi": "https://doi.org/10.1609/aaai.v34i10.7194",
+        "s2_url": "https://www.semanticscholar.org/paper/bbbb135f18ded983c28a0a0feb5df797d89cb010"
+      },
+      {
+        "paper_id": "265157446",
+        "title": "A Closer Look at the Self-Verification Abilities of Large Language Models in Logical Reasoning",
+        "abstract": "Logical reasoning has been an ongoing pursuit in the field of AI. Despite significant advancements made by large language models (LLMs), they still struggle with complex logical reasoning problems. To enhance reasoning performance, one promising direction is scalable oversight, which requires LLMs to identify their own errors and then improve by themselves. Various self-verification methods have been proposed in pursuit of this goal. Nevertheless, whether existing models understand their own errors well is still under investigation. In this paper, we take a closer look at the self-verification abilities of LLMs in the context of logical reasoning, focusing on their ability to identify logical fallacies accurately. We introduce a dataset, FALLACIES, containing 232 types of reasoning fallacies categorized in a hierarchical taxonomy. By conducting exhaustive experiments on FALLACIES, we obtain comprehensive and detailed analyses of a series of models on their verification abilities. Our main findings suggest that existing LLMs could struggle to identify fallacious reasoning steps accurately and may fall short of guaranteeing the validity of self-verification methods. Drawing from these observations, we offer suggestions for future research and practical applications of self-verification methods.",
+        "score": 1.022446632385254,
+        "doi": "https://doi.org/10.48550/arXiv.2311.07954",
+        "s2_url": "https://www.semanticscholar.org/paper/6233b5863f9a0e8bacce47ce21bc3e81c09497bd"
+      },
+      {
+        "paper_id": "259341789",
+        "title": "Won’t Get Fooled Again: Answering Questions with False Premises",
+        "abstract": "Pre-trained language models (PLMs) have shown unprecedented potential in various fields, especially as the backbones for question-answering (QA) systems. However, they tend to be easily deceived by tricky questions such as “How many eyes does the sun have?”. Such frailties of PLMs often allude to the lack of knowledge within them. In this paper, we find that the PLMs already possess the knowledge required to rebut such questions, and the key is how to activate the knowledge. To systematize this observation, we investigate the PLMs’ responses to one kind of tricky questions, i.e., the false premises questions (FPQs). We annotate a FalseQA dataset containing 2365 human-written FPQs, with the corresponding explanations for the false premises and the revised true premise questions. Using FalseQA, we discover that PLMs are capable of discriminating FPQs by fine-tuning on moderate numbers (e.g., 256) of examples. PLMs also generate reasonable explanations for the false premise, which serve as rebuttals. Further replaying a few general questions during training allows PLMs to excel on FPQs and general questions simultaneously. Our work suggests that once the rebuttal ability is stimulated, knowledge inside the PLMs can be effectively utilized to handle FPQs, which incentivizes the research on PLM-based QA systems. The FalseQA dataset and code are available at https://github.com/thunlp/FalseQA .",
+        "score": 1.0477370023727417,
+        "doi": "https://doi.org/10.48550/arXiv.2307.02394",
+        "s2_url": "https://www.semanticscholar.org/paper/ed391d9143bb81715c051d866e2b51a4d4c9c772"
+      },
+      {
+        "paper_id": "258686482",
+        "title": "Zero-shot Faithful Factual Error Correction",
+        "abstract": "Faithfully correcting factual errors is critical for maintaining the integrity of textual knowledge bases and preventing hallucinations in sequence-to-sequence models. Drawing on humans’ ability to identify and correct factual errors, we present a zero-shot framework that formulates questions about input claims, looks for correct answers in the given evidence, and assesses the faithfulness of each correction based on its consistency with the evidence. Our zero-shot framework outperforms fully-supervised approaches, as demonstrated by experiments on the FEVER and SciFact datasets, where our outputs are shown to be more faithful. More importantly, the decomposability nature of our framework inherently provides interpretability. Additionally, to reveal the most suitable metrics for evaluating factual error corrections, we analyze the correlation between commonly used metrics with human judgments in terms of three different dimensions regarding intelligibility and faithfulness.",
+        "score": 1.0497159957885742,
+        "doi": "https://doi.org/10.48550/arXiv.2305.07982",
+        "s2_url": "https://www.semanticscholar.org/paper/5c0148e2ee4efc33731335fac26780a3fb79e16c"
+      },
+      {
+        "paper_id": "248779979",
+        "title": "Automated Crossword Solving",
+        "abstract": "We present the Berkeley Crossword Solver, a state-of-the-art approach for automatically solving crossword puzzles. Our system works by generating answer candidates for each crossword clue using neural question answering models and then combines loopy belief propagation with local search to find full puzzle solutions. Compared to existing approaches, our system improves exact puzzle accuracy from 57% to 82% on crosswords from The New York Times and obtains 99.9% letter accuracy on themeless puzzles. Our system also won first place at the top human crossword tournament, which marks the first time that a computer program has surpassed human performance at this event. To facilitate research on question answering and crossword solving, we analyze our system’s remaining errors and release a dataset of over six million question-answer pairs.",
+        "score": 1.0512498617172241,
+        "doi": "https://doi.org/10.18653/v1/2022.acl-long.219",
+        "s2_url": "https://www.semanticscholar.org/paper/32afdb07021fda775ceaedd231c58bfed0aa980a"
+      }
+    ]
+  },
+  {
+    "query": "ai making stuff up",
+    "results": [
+      {
+        "paper_id": "276558227",
+        "title": "Almost AI, Almost Human: The Challenge of Detecting AI-Polished Writing",
+        "abstract": "The growing use of large language models (LLMs) for text generation has led to widespread concerns about AI-generated content detection. However, an overlooked challenge is AI-polished text, where human-written content undergoes subtle refinements using AI tools. This raises a critical question: should minimally polished text be classified as AI-generated? Such classification can lead to false plagiarism accusations and misleading claims about AI prevalence in online content. In this study, we systematically evaluate twelve state-of-the-art AI-text detectors using our AI-Polished-Text Evaluation (APT-Eval) dataset, which contains 14.7K samples refined at varying AI-involvement levels. Our findings reveal that detectors frequently flag even minimally polished text as AI-generated, struggle to differentiate between degrees of AI involvement, and exhibit biases against older and smaller models. These limitations highlight the urgent need for more nuanced detection methodologies.",
+        "score": 0.9144436717033386,
+        "doi": "https://doi.org/10.48550/arXiv.2502.15666",
+        "s2_url": "https://www.semanticscholar.org/paper/61cf8c379a4c4bf1237e31cf1fc1c0b2ff43a45a"
+      },
+      {
+        "paper_id": "275921918",
+        "title": "People who frequently use ChatGPT for writing tasks are accurate and robust detectors of AI-generated text",
+        "abstract": "In this paper, we study how well humans can detect text generated by commercial LLMs (GPT-4o, Claude, o1). We hire annotators to read 300 non-fiction English articles, label them as either human-written or AI-generated, and provide paragraph-length explanations for their decisions. Our experiments show that annotators who frequently use LLMs for writing tasks excel at detecting AI-generated text, even without any specialized training or feedback. In fact, the majority vote among five such\"expert\"annotators misclassifies only 1 of 300 articles, significantly outperforming most commercial and open-source detectors we evaluated even in the presence of evasion tactics like paraphrasing and humanization. Qualitative analysis of the experts' free-form explanations shows that while they rely heavily on specific lexical clues ('AI vocabulary'), they also pick up on more complex phenomena within the text (e.g., formality, originality, clarity) that are challenging to assess for automatic detectors. We release our annotated dataset and code to spur future research into both human and automated detection of AI-generated text.",
+        "score": 0.9714725613594055,
+        "doi": "https://doi.org/10.48550/arXiv.2501.15654",
+        "s2_url": "https://www.semanticscholar.org/paper/b1bff38f79cd3aa4f24b8285da650735f970c57c"
+      },
+      {
+        "paper_id": "274515092",
+        "title": "Exploring AI Text Generation, Retrieval-Augmented Generation, and Detection Technologies: a Comprehensive Overview",
+        "abstract": "The rapid development of Artificial Intelligence (AI) has led to the creation of powerful text generation models, such as large language models (LLMs), which are widely used for di-verse applications. However, concerns surrounding AI-generated content, including issues of originality, bias, misinformation, and accountability, have become increasingly prominent. This paper offers a comprehensive overview of AI text generators (AITGs), focusing on their evolution, capabilities, and ethical implications. This paper also introduces Retrieval-Augmented Generation (RAG), a recent approach that improves the contextual relevance and accuracy of text generation by integrating dynamic infor-mation retrieval. RAG addresses key limitations of traditional models, including their reliance on static knowledge and potential inaccuracies in handling real-world data. Additionally, the paper reviews detection tools that help differentiate AI-generated text from human-written content and discusses the ethical challenges these technologies pose. The paper explores future directions for improving detection accuracy, supporting ethical AI development, and increasing accessibility. The paper contributes to a more responsible and reliable use of AI in content creation through these discussions.",
+        "score": 0.9751662015914917,
+        "doi": "https://doi.org/10.1109/CCWC62904.2025.10903902",
+        "s2_url": "https://www.semanticscholar.org/paper/a4cde47e9be5d6ad9375ea84560d29af990593e0"
+      },
+      {
+        "paper_id": "269312592",
+        "title": "Natural Language Programming towards Solving Addition-Subtraction Word Problems for assessing AI-based offensive code generators",
+        "abstract": "Programming remains a dark art for beginners. The gap between how people speak and how computer programs are made has always made it hard for people to become programmers. Learning all the complex rules of programming languages can be really tough and often stops people from trying coding. But here, we have an idea to make things much easier. We’re working on a special tool that lets you tell the computer what you want to do in regular human language, whether you write it or say it out loud. It will then create the actual computer code for you, like magic! This will make programming easy, efficient, and user-friendly. By combining NLP and automatic code generation, our project wants to help people express their programming ideas in a way that feels natural and easy. This will bring in a new era of coding that’s friendly to everyone, making it possible for people of all kinds to bring their computer ideas to life without worrying about confusing coding rules.",
+        "score": 0.997147262096405,
+        "doi": "https://doi.org/10.1109/ICDECS59733.2023.10503103",
+        "s2_url": "https://www.semanticscholar.org/paper/64a78f4a6b92c9dfab7e5bffb449ae6be0424002"
+      },
+      {
+        "paper_id": "272599806",
+        "title": "MOSAIC: Multiple Observers Spotting AI Content",
+        "abstract": "The dissemination of Large Language Models (LLMs), trained at scale, and endowed with powerful text-generating abilities, has made it easier for all to produce harmful, toxic, faked or forged content. In response, various proposals have been made to automatically discriminate artificially generated from human-written texts, typically framing the problem as a binary classification problem. Early approaches evaluate an input document with a well-chosen detector LLM, assuming that low-perplexity scores reliably signal machine-made content. More recent systems instead consider two LLMs and compare their probability distributions over the document to further discriminate when perplexity alone cannot. However, using a fixed pair of models can induce brittleness in performance. We extend these approaches to the ensembling of several LLMs and derive a new, theoretically grounded approach to combine their respective strengths. Our experiments, conducted with various generator LLMs, indicate that this approach effectively leverages the strengths of each model, resulting in robust detection performance across multiple domains. Our code and data are available at https://github.com/BaggerOfWords/MOSAIC .",
+        "score": 1.005222201347351,
+        "doi": "https://doi.org/10.18653/v1/2025.findings-acl.1244",
+        "s2_url": "https://www.semanticscholar.org/paper/e9b45d95b2647d89db1c215e01db0ef063045188"
+      }
+    ]
+  },
+  {
+    "query": "cleaning up messy text",
+    "results": [
+      {
+        "paper_id": "278712776",
+        "title": "AutoClean: LLMs Can Prepare Their Training Corpus",
+        "abstract": "Recent studies highlight the reliance of Large Language Models (LLMs) on high-quality, diverse data for optimal performance. The data sourced from the Internet is often aggregated into datasets like Common Crawl, which presents significant quality variability and necessitates extensive cleaning. Moreover, specific domain knowledge is usually presented in HTML, but there is a lack of effective methods to clean HTML pages into the pre-training corpus automatically. Traditional cleaning meth-ods involve either labor-intensive human teams that lack scalability or static heuristics that lead to suboptimal outcomes and cannot be applied to specific target domains. In this paper, inspired by the recent progress in employing LLMs as versatile agents for diverse tasks, we take the initiative to explore the potential of these agents in automating data-cleaning methodologies. By configuring LLMs as an agent team that imitates the human data-cleaning team, we can automatically generate cleaning rules that traditionally require the involvement of data-cleaning experts. These rules are developed using a limited number of data samples and can then be applied broadly to substantial portions of raw data from the same domain. We demonstrate the efficiency and effectiveness of AutoClean on both pre-training corpora such as Common Crawl and specific target websites. Both automatic and human evaluations of the quality of the cleaned content highlight the feasibility of using LLMs to prepare their pre-training corpus.",
+        "score": 0.9987241625785828,
+        "doi": "https://doi.org/10.18653/v1/2025.naacl-demo.9",
+        "s2_url": "https://www.semanticscholar.org/paper/384372f7d30d9112eb4e662cb6dba2f86414415c"
+      },
+      {
+        "paper_id": "253197815",
+        "title": "Between Denoising and Translation: Experiments in Text Detoxification",
+        "abstract": "This paper describes a solution for the RUSSE Detoxification competition held as part of the Dialogue 2022 conference. The paper presents experiments based on autoregressive and non-autoregressive models. The following approaches are described in this paper: 1) Detoxification as a special case of the text style-transfer problem and the use of modern approaches to solve this task in Russian. 2) Using the Automatic Post-Editing algorithm as a task of translation from toxic to normative Russian text. The article provides an analysis of the listed models, their results in detoxification of sentences, as well an analysis of errors and reasons why the models gave such a diverse result.",
+        "score": 1.054315209388733,
+        "doi": "https://doi.org/10.28995/2075-7182-2022-21-447-455",
+        "s2_url": "https://www.semanticscholar.org/paper/fc3eeb15cd7c928454b8cd339d203377e196f989"
+      },
+      {
+        "paper_id": "259370635",
+        "title": "Fast Whitespace Correction with Encoder-Only Transformers",
+        "abstract": "The goal of whitespace correction is to fix space errors in arbitrary given text. For example, given the text “whi te space correctio nwithTransf or mers”, produce “whitespace correction with Transformers”. We compare two Transformer-based models, a character-level encoder-decoder model and a byte-level encoder-only model. We find that the encoder-only model is both faster and achieves higher quality. We provide an easy-to-use tool that is over 900 times faster than the previous best tool, with the same high quality. Our tool repairs text at a rate of over 200 kB/s on GPU, with a sequence-averaged F1-score ranging from 87.5% for hard-to-correct text up to 99% for text without any spaces.",
+        "score": 1.0633506774902344,
+        "doi": "https://doi.org/10.18653/v1/2023.acl-demo.37",
+        "s2_url": "https://www.semanticscholar.org/paper/c3904ef47bec4fc2bfd3d390370681c33542d62d"
+      },
+      {
+        "paper_id": "265506006",
+        "title": "I Know You Did Not Write That! A Sampling Based Watermarking Method for Identifying Machine Generated Text",
+        "abstract": "Potential harms of Large Language Models such as mass misinformation and plagiarism can be partially mitigated if there exists a reliable way to detect machine generated text. In this paper, we propose a new watermarking method to detect machine-generated texts. Our method embeds a unique pattern within the generated text, ensuring that while the content remains coherent and natural to human readers, it carries distinct markers that can be identified algorithmically. Specifically, we intervene with the token sampling process in a way which enables us to trace back our token choices during the detection phase. We show how watermarking affects textual quality and compare our proposed method with a state-of-the-art watermarking method in terms of robustness and detectability. Through extensive experiments, we demonstrate the effectiveness of our watermarking scheme in distinguishing between watermarked and non-watermarked text, achieving high detection rates while maintaining textual quality.",
+        "score": 1.07051420211792,
+        "doi": "https://doi.org/10.48550/arXiv.2311.18054",
+        "s2_url": "https://www.semanticscholar.org/paper/ffcc462dfa5bd932beefc1947afdb811af6e4bfe"
+      },
+      {
+        "paper_id": "9936008",
+        "title": "Data-Driven Spelling Correction using Weighted Finite-State Methods",
+        "abstract": "This paper presents two systems for spelling correction formulated as a sequence labeling task. One of the systems is an unstructured classifier and the other one is structured. Both systems are implemented using weighted finite-state methods. The structured system delivers stateof-the-art results on the task of tweet normalization when compared with the recent AliSeTra system introduced by Eger et al. (2016) even though the system presented in the paper is simpler than AliSeTra because it does not include a model for input segmentation. In addition to experiments on tweet normalization, we present experiments on OCR post-processing using an Early Modern Finnish corpus of OCR processed newspaper text.",
+        "score": 1.0923458337783813,
+        "doi": "https://doi.org/10.18653/v1/W16-2406",
+        "s2_url": "https://www.semanticscholar.org/paper/04669645e3bbfbe9e82ac3a412de3fc790e8cc6f"
+      }
+    ]
+  }
+]
