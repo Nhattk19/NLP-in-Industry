@@ -1,6 +1,6 @@
 import os
 import json
-from config import OUTPUT_PATH_RETRIEVED, OUTPUT_PATH_RERANKED
+from src.config import OUTPUT_PATH_RETRIEVED, OUTPUT_PATH_RERANKED
 from flashrank import Ranker, RerankRequest
 
 # ================= CẤU HÌNH ĐƯỜNG DẪN =================
@@ -57,7 +57,6 @@ class PaperReranker:
                 "abstract": str(original.get("abstract", "")),
                 "rerank_score": round(float(passage["score"]), 4), 
                 "old_score": float(original["score"]),             
-                "search_type": str(original.get("search_type", "hybrid"))
             })
 
         return final_output

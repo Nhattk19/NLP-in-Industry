@@ -4,7 +4,7 @@
 import json
 import os
 import chromadb
-from config import EMBEDDING_MODEL, DEVICE, TOP_K
+from src.config import EMBEDDING_MODEL, DEVICE, TOP_K
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 

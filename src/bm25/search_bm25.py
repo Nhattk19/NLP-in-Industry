@@ -2,33 +2,16 @@ import os
 import json
 import re
 from rank_bm25 import BM25Okapi
-
-# ================= CẤU HÌNH ĐƯỜNG DẪN =================
-DATA_PATH = "data/data_processed/final_cleaned_data.jsonl"  # File chứa dữ liệu đã làm sạch (JSONL)
-
-# Trỏ đến file queries giống hệt như bản Vector Semantic
-QUERY_PATH = "./src/queries.json"
-# File output riêng cho BM25
-OUTPUT_PATH = "./src/bm25/results_bm25.json" 
-
-try:
-    import config
-    TOP_K = getattr(config, "TOP_K", 20)
-except ImportError:
-    TOP_K = 20
+from src.config import DATA_PATH, QUERY_PATH, TOP_K, OUTPUT_PATH_BM25
 
 # ================= HÀM HỖ TRỢ =================
 def tokenize(text):
-    """
-    Hàm tách từ (Tokenization) đơn giản cho BM25.
-    - Chuyển thành chữ thường
-    - Lấy các từ chứa chữ và số (bỏ dấu câu)
-    """
+    """Tách từ đơn giản cho BM25 (chuyển chữ thường, bỏ dấu câu)"""
     if not text: return[]
     return re.findall(r'\w+', str(text).lower())
 
 def load_queries(path):
-    """Đọc file ground_truth_queries.json chứa danh sách câu hỏi"""
+    """Đọc file queries.json"""
     if not os.path.exists(path):
         print(f"❌ Không tìm thấy file query tại: {path}")
         return[]
@@ -42,10 +25,10 @@ def load_queries(path):
 # ================= CLASS BM25 SEARCHER =================
 class BM25Searcher:
     def __init__(self, data_path):
-        self.corpus_metadata =[]
+        self.corpus_metadata = []
         tokenized_corpus =[]
         
-        print(f"📦 Đang load dữ liệu từ {os.path.basename(data_path)} để build BM25 Index...")
+        print(f"📦 [BM25] Đang load dữ liệu từ {os.path.basename(data_path)} để build Index...")
         if not os.path.exists(data_path):
             raise FileNotFoundError(f"Không tìm thấy file: {data_path}")
 
@@ -53,41 +36,38 @@ class BM25Searcher:
             for line in f:
                 try:
                     doc = json.loads(line)
-                    # Gộp Title và Abstract để tìm kiếm
+                    # Gộp Title và Abstract để làm văn bản tìm kiếm
                     title = doc.get("title", "")
                     abstract = doc.get("abstract", "")
                     search_text = f"{title} {abstract}"
                     
-                    # Tokenize và đưa vào kho
+                    # Tokenize và đưa vào kho (corpus)
                     tokenized_corpus.append(tokenize(search_text))
                     
-                    # Lưu lại thông tin (metadata) để lát trả kết quả
+                    # Chỉ lưu đúng 3 thông tin cần thiết vào RAM để tối ưu bộ nhớ
                     self.corpus_metadata.append({
                         "paper_id": str(doc.get("paper_id", "")),
                         "title": title,
-                        "abstract": abstract,
-                        "venue": doc.get("venue", ""),
-                        "year": str(doc.get("publication_date") or doc.get("year") or ""),
-                        "s2_url": doc.get("externalsid", {}).get("s2_url", "")
+                        "abstract": abstract
                     })
                 except json.JSONDecodeError:
                     continue
 
-        print(f"⚙️  Đang khởi tạo BM25Okapi Engine cho {len(tokenized_corpus)} bài báo...")
+        print(f"⚙️  [BM25] Khởi tạo BM25 Engine cho {len(tokenized_corpus)} bài báo...")
         self.bm25 = BM25Okapi(tokenized_corpus)
-        print("✅ BM25 Index đã sẵn sàng!\n")
+        print("✅ [BM25] Index đã sẵn sàng!\n")
 
     def search(self, query: str, top_k: int = 20):
-        """Thực hiện tìm kiếm theo BM25"""
+        """Thực hiện tìm kiếm lexical"""
         tokenized_query = tokenize(query)
         
-        # Lấy điểm số của query đối với toàn bộ bài báo trong kho
+        # Chấm điểm toàn bộ document
         doc_scores = self.bm25.get_scores(tokenized_query)
         
-        # Ghép cặp (Index, Score) và loại bỏ các bài có điểm = 0 (Không khớp chữ nào)
+        # Chỉ giữ lại bài có điểm > 0
         scored_docs =[(i, float(score)) for i, score in enumerate(doc_scores) if score > 0]
         
-        # Sắp xếp giảm dần theo Score
+        # Sắp xếp giảm dần theo điểm BM25
         scored_docs.sort(key=lambda x: x[1], reverse=True)
         
         # Cắt lấy Top K
@@ -97,17 +77,13 @@ class BM25Searcher:
         for rank, (doc_idx, score) in enumerate(top_results, start=1):
             meta = self.corpus_metadata[doc_idx]
             
+            # FORMAT CHUẨN 5 TRƯỜNG ĐÚNG NHƯ YÊU CẦU
             output.append({
-                "rank": rank,
+                "rank": int(rank),
                 "paper_id": meta["paper_id"],
                 "title": meta["title"],
                 "abstract": meta["abstract"],
-                "score": round(score, 4),      # ĐIỂM BM25: Càng cao càng tốt
-                "venue": meta["venue"],
-                "year": meta["year"],
-                "s2_url": meta["s2_url"],
-                "search_type": "bm25",         # Đánh dấu nguồn gốc
-                "is_relevant": None
+                "score": round(score, 4)
             })
             
         return output
@@ -118,34 +94,33 @@ def main():
     if not queries:
         return
 
-    # 1. Khởi tạo Engine
+    # Khởi tạo Engine
     searcher = BM25Searcher(DATA_PATH)
-    
     all_results =[]
-    print(f"🚀 Bắt đầu truy xuất BM25 cho {len(queries)} queries (Top {TOP_K})...")
+    
+    print(f"🚀 [BM25] Bắt đầu tìm kiếm cho {len(queries)} queries (Top {TOP_K})...")
 
-    # 2. Tìm kiếm từng câu
     for idx, query in enumerate(queries):
-        print(f"   [{idx+1:02d}/{len(queries)}] Đang tìm (BM25): '{query}'")
+        print(f"[{idx+1:02d}/{len(queries)}] Đang tìm: '{query}'")
         
+        # Lấy kết quả
         search_results = searcher.search(query, top_k=TOP_K)
         
-        query_record = {
-            "query_id": f"Q{idx+1:03d}",
+        # Đóng gói chuẩn format: Chỉ gồm "query" và "results"
+        all_results.append({
             "query": query,
-            "mode": "lexical_bm25",
-            "retrieved_results": search_results
-        }
-        
-        all_results.append(query_record)
+            "results": search_results
+        })
 
-    # 3. Lưu file
-    os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
-    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+    # Đảm bảo thư mục lưu trữ tồn tại
+    os.makedirs(os.path.dirname(OUTPUT_PATH_BM25), exist_ok=True)
+
+    # Ghi file
+    with open(OUTPUT_PATH_BM25 , "w", encoding="utf-8") as f:
         json.dump(all_results, f, ensure_ascii=False, indent=4)
 
-    print(f"\n🎉 HOÀN TẤT!")
-    print(f"📂 Kết quả tìm kiếm BM25 đã được lưu tại: {OUTPUT_PATH}")
+    print("\n🎉 HOÀN TẤT LEXICAL SEARCH!")
+    print(f"📂 File kết quả: {OUTPUT_PATH_BM25}")
 
 if __name__ == "__main__":
     main()

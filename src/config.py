@@ -10,5 +10,8 @@ TOP_K = 20
 
 OUTPUT_PATH_RETRIEVED = "./src/chromadb/retrieved_results.json"
 OUTPUT_PATH_RERANKED = "./src/chromadb/reranked_results.json"
+OUTPUT_PATH_CHROMADB = "./src/chromadb/results.json"
+OUTPUT_PATH_BM25 = "./src/bm25/results.json"
 
-DATA_PATH = "data/data_processed/final_cleaned_data.jsonl"  # File chứa dữ liệu đã làm sạch (JSONL)
+DATA_PATH = "./data/data_processed/final_cleaned_data.jsonl"  # File chứa dữ liệu đã làm sạch (JSONL)
+QUERY_PATH = "./src/queries.json"  # File chứa các câu query (JSON)

@@ -1,13 +1,12 @@
 import os
 import json
-from config import TOP_K, OUTPUT_PATH_RETRIEVED
+from src.config import TOP_K, OUTPUT_PATH_RETRIEVED
 import chromadb
 from chromadb.utils import embedding_functions
 
 # ================= CẤU HÌNH ĐƯỜNG DẪN =================
 CHROMA_PATH = "./src/chromadb/chroma_store_abstracts"
 COLLECTION_NAME = "papers_abstracts"
-
 QUERY_PATH = "./src/queries.json"
 # ================= KHỞI TẠO CHROMADB =================
 print(f"🗄️ Đang kết nối tới ChromaDB tại: {CHROMA_PATH} ...")
