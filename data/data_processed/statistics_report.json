@@ -1,10 +1,13 @@
 {
     "summary": {
-        "total_files_scanned": 1,
+        "total_files": 1,
         "total_papers": 17176,
         "total_surveys": 3233,
-        "total_vietnamese": 50,
-        "total_duplicate_titles": 5
+        "vietnamese_related": 50,
+        "duplicate_titles": 5,
+        "abstract_coverage_percent": 75.76269212855146,
+        "citations_coverage_percent": 58.47694457382394,
+        "references_coverage_percent": 59.88006520726595
     },
     "details": {
         "vietnamese_ids": [
@@ -59,7 +62,7 @@
             "227068911",
             "13038579"
         ],
-        "duplicates_by_title": {
+        "duplicate_titles": {
             "automatictextsummarization": [
                 {
                     "id": "86633635",
