@@ -36,11 +36,7 @@ def filter_data_with_abstract(input_path, output_path):
         for line in infile:
             total += 1
 
-            try:
-                record = json.loads(line)
-            except:
-                continue
-
+            record = json.loads(line)
             title = normalize(record.get("title", ""))
             abstract = normalize(record.get("abstract", ""))
 

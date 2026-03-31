@@ -2,9 +2,8 @@
 # Encode documents (title + abstract) into embeddings and store them in ChromaDB for vector search (indexing stage)
 
 import json
-import os
 import chromadb
-from src.config import EMBEDDING_MODEL, DEVICE, TOP_K
+from src.config import EMBEDDING_MODEL, DEVICE
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
