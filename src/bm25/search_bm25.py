@@ -7,7 +7,7 @@ from rank_bm25 import BM25Okapi
 DATA_PATH = "data/data_processed/final_cleaned_data.jsonl"  # File chứa dữ liệu đã làm sạch (JSONL)
 
 # Trỏ đến file queries giống hệt như bản Vector Semantic
-QUERY_PATH = "./src/ground_truth_queries.json"
+QUERY_PATH = "./src/queries.json"
 # File output riêng cho BM25
 OUTPUT_PATH = "./src/bm25/results_bm25.json" 
 

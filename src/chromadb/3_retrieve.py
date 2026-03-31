@@ -8,7 +8,7 @@ from chromadb.utils import embedding_functions
 CHROMA_PATH = "./src/chromadb/chroma_store_abstracts"
 COLLECTION_NAME = "papers_abstracts"
 
-QUERY_PATH = "./src/ground_truth_queries.json"
+QUERY_PATH = "./src/queries.json"
 # ================= KHỞI TẠO CHROMADB =================
 print(f"🗄️ Đang kết nối tới ChromaDB tại: {CHROMA_PATH} ...")
 client = chromadb.PersistentClient(path=CHROMA_PATH)
