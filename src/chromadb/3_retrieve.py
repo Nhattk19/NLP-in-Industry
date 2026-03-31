@@ -1,6 +1,6 @@
 import os
 import json
-from config import QUERY_PROCESSING_MODEL, DEVICE, TOP_K, OUTPUT_PATH_RETRIEVED
+from config import TOP_K, OUTPUT_PATH_RETRIEVED
 import chromadb
 from chromadb.utils import embedding_functions
 
