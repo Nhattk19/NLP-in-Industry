@@ -1,0 +1,24 @@
+[
+  { "query": "transformer architecture" },
+  { "query": "bert pretraining" },
+  { "query": "named entity recognition" },
+  { "query": "machine translation" },
+  { "query": "attention mechanism" },
+  { "query": "sentiment analysis" },
+
+  { "query": "how does transformer architecture work" },
+  { "query": "what is bert pretraining and how does it work" },
+  { "query": "how to do named entity recognition in NLP" },
+  { "query": "how does machine translation work in deep learning" },
+  { "query": "what is attention mechanism in neural networks" },
+  { "query": "how to fine tune a language model like bert" },
+  { "query": "what are word embeddings and how are they used" },
+  { "query": "how does tokenization work in NLP models" },
+  { "query": "what is masked language modeling in bert" },
+  { "query": "how do question answering systems work in NLP" },
+
+  { "query": "improving transformer efficiency for long sequences" },
+  { "query": "memory optimization techniques in transformer models" },
+  { "query": "comparison of transformer encoder and decoder architectures" },
+  { "query": "methods for retrieval augmented generation in NLP" }
+]
