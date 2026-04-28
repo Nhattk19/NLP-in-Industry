@@ -1,0 +1,33 @@
+__pycache__/
+*.pyc
+.env
+.vscode/
+data/data_raw/
+models/large/
+venv/
+env/
+chroma_store/
+data/src/api.txt
+src/src
+data/data_processed/full_paper.jsonl
+src/chroma_fulltext/rag_demo.py
+src/chroma_fulltext/export_to_csv.py
+src/chroma_fulltext/api_agent.txt
+data/chroma_fulltext_export.csv
+src/chroma_fulltext/chroma_store_fulltext
+src/chromadb/chroma_store_abstracts
+src/web/pages/api_agent.txt
+
+# Bỏ qua toàn bộ database của Chroma
+data/chroma_store_fulltext/
+
+# Bỏ qua các file data lớn đã process
+data/data_processed/*.jsonl
+data/data_processed/*.json
+
+# Bỏ qua các định dạng file nặng (để chặn phòng hờ)
+*.bin
+*.pickle
+*.sqlite3
+*.db
+*.json
