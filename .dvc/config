@@ -1,0 +1,7 @@
+[core]
+    remote = dagshub
+['remote "dagshub"']
+    url = https://dagshub.com/tpdinh2612/NLP-Scholar.dvc
+    auth = basic
+    user = tpdinh2612
+    password = 3e3990b25d5945234e2b00bb30fa3f5b4e4469e8
