@@ -1,3 +1,6 @@
+import os
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
 import streamlit as st
 
 from core.config import CHROMA_PATH

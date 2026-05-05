@@ -376,14 +376,17 @@ class ExternalSearcher:
         
         try:
             import chromadb
+            from chromadb.config import Settings
             from chromadb.utils import embedding_functions
             
             # Disable ChromaDB telemetry to avoid telemetry errors
             os.environ["CHROMA_TELEMETRY_IMPL"] = "none"
+            os.environ["ANONYMIZED_TELEMETRY"] = "False"
             
             # Connect to ChromaDB
             CHROMA_PATH = "./data/chroma_store_fulltext"
-            client = chromadb.PersistentClient(path=CHROMA_PATH)
+            settings = Settings(anonymized_telemetry=False)
+            client = chromadb.PersistentClient(path=CHROMA_PATH, settings=settings)
             emb_fn = embedding_functions.DefaultEmbeddingFunction()
             
             collection = client.get_or_create_collection(

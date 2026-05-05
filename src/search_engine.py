@@ -3,6 +3,11 @@ import json
 import subprocess
 import shutil
 import sys
+
+# Disable ChromaDB telemetry before running modules
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+os.environ["CHROMA_TELEMETRY_IMPL"] = "none"
+
 from src.config import OUTPUT_PATH_RETRIEVED, OUTPUT_PATH_RERANKED, OUTPUT_PATH_CHROMADB
 
 # ================= BASE PATH =================
@@ -42,7 +47,6 @@ def run_module(module_name):
         return False
 
 
-<<<<<<< HEAD
 def apply_rrf_merge(lexical_results, semantic_results, top_k):
     """
     Generic RRF merging for in-memory result lists
@@ -79,8 +83,6 @@ def apply_rrf_merge(lexical_results, semantic_results, top_k):
     return merged_results
 
 
-=======
->>>>>>> 0fbc897ed8e0703e70ccfb0b334045576a9a10b9
 def combine_hybrid_rrf(lexical_file, semantic_file, output_file, top_k):
     print("\n🔀 Hybrid RRF merging...")
 

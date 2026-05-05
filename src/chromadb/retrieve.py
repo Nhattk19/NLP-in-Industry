@@ -1,5 +1,4 @@
 import os
-<<<<<<< HEAD
 import sys
 import json
 import chromadb
@@ -23,27 +22,14 @@ else:
     CHROMA_PATH = CHROMA_PATH_ABSTRACTS
     COLLECTION_NAME = "papers_abstracts"
 
-=======
-import json
-import chromadb
-from chromadb.utils import embedding_functions
-
-# ================= CẤU HÌNH ĐƯỜNG DẪN =================
-CHROMA_PATH = "./src/chromadb/chroma_store_abstracts"
-COLLECTION_NAME = "papers_abstracts"
->>>>>>> 0fbc897ed8e0703e70ccfb0b334045576a9a10b9
 QUERY_PATH = "./src/queries.json"
 TOP_K = 20
 
 OUTPUT_PATH_RETRIEVED = "./src/chromadb/retrieved_results.json"
-<<<<<<< HEAD
 # ================= KH_I T_O CHROMADB =================
 print(f"[INIT] Connecting to ChromaDB at: {CHROMA_PATH}...")
-=======
-# ================= KHỞI TẠO CHROMADB =================
-print(f"🗄️ Đang kết nối tới ChromaDB tại: {CHROMA_PATH} ...")
->>>>>>> 0fbc897ed8e0703e70ccfb0b334045576a9a10b9
-client = chromadb.PersistentClient(path=CHROMA_PATH)
+from chromadb.config import Settings
+client = chromadb.PersistentClient(path=CHROMA_PATH, settings=Settings(anonymized_telemetry=False))
 
 # Sử dụng Embedding mặc định của ChromaDB (all-MiniLM-L6-v2 bản ONNX - Không cần Torch)
 emb_fn = embedding_functions.DefaultEmbeddingFunction()
@@ -54,7 +40,6 @@ try:
         name=COLLECTION_NAME, 
         embedding_function=emb_fn
     )
-<<<<<<< HEAD
     print(f"[OK] Connected to Collection: '{COLLECTION_NAME}' (Total papers: {collection.count()})")
 except Exception as e:
     print(f"[WARNING] Collection '{COLLECTION_NAME}' not found: {e}")
@@ -77,29 +62,12 @@ def load_queries(path):
     """Read list of questions from JSON file"""
     if not os.path.exists(path):
         print(f"[ERROR] File not found: {path}")
-=======
-    print(f"✅ Đã kết nối Collection: '{COLLECTION_NAME}' (Tổng số bài: {collection.count()})")
-except Exception as e:
-    print(f"❌ Lỗi kết nối Collection: {e}")
-    print("Vui lòng đảm bảo bạn đã chạy file Ingest để tạo database trước.")
-    exit(1)
-
-# ================= HÀM HỖ TRỢ =================
-def load_queries(path):
-    """Đọc danh sách câu hỏi từ file JSON"""
-    if not os.path.exists(path):
-        print(f"❌ Không tìm thấy file: {path}")
->>>>>>> 0fbc897ed8e0703e70ccfb0b334045576a9a10b9
         return []
         
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
         
-<<<<<<< HEAD
     # Support format [{"query": "..."}]
-=======
-    # Hỗ trợ format [{"query": "..."}]
->>>>>>> 0fbc897ed8e0703e70ccfb0b334045576a9a10b9
     if data and isinstance(data[0], dict) and "query" in data[0]:
         return [item["query"] for item in data]
     # Hỗ trợ format list string bình thường ["query 1", "query 2"]
@@ -110,7 +78,6 @@ def search(query: str, top_k: int = 20):
     """
     Tìm kiếm Semantic Search trực tiếp bằng Raw Query và trích xuất TOÀN BỘ metadata
     """
-<<<<<<< HEAD
     # Return empty if collection not available
     if collection is None:
         print("[WARN] ChromaDB collection not available, returning empty results")
@@ -124,14 +91,6 @@ def search(query: str, top_k: int = 20):
             n_results=top_k,
             include=["metadatas", "distances"] 
         )
-=======
-    # CHROMA TỰ ĐỘNG CHUYỂN TEXT THÀNH VECTOR
-    results = collection.query(
-        query_texts=[query],
-        n_results=top_k,
-        include=["metadatas", "distances"] 
-    )
->>>>>>> 0fbc897ed8e0703e70ccfb0b334045576a9a10b9
 
     if not results["ids"] or not results["ids"][0]:
         return []
@@ -204,21 +163,12 @@ def main():
             all_results.append(query_record)
             
         except Exception as e:
-<<<<<<< HEAD
             print(f"   ERROR: Error searching query '{query}': {e}")
 
     # Ensure storage directory exists
     os.makedirs(os.path.dirname(OUTPUT_PATH_RETRIEVED), exist_ok=True)
 
     # Save JSON results
-=======
-            print(f"   ❌ Lỗi khi tìm kiếm query '{query}': {e}")
-
-    # Đảm bảo thư mục lưu trữ tồn tại
-    os.makedirs(os.path.dirname(OUTPUT_PATH_RETRIEVED), exist_ok=True)
-
-    # Lưu file JSON kết quả
->>>>>>> 0fbc897ed8e0703e70ccfb0b334045576a9a10b9
     with open(OUTPUT_PATH_RETRIEVED, "w", encoding="utf-8") as f:
         json.dump(all_results, f, ensure_ascii=False, indent=4)
 

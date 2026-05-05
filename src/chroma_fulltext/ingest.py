@@ -245,7 +245,8 @@ def process_batch(collection, model, documents, metadatas, ids, embed_bar):
 
 
 def main():
-    client = chromadb.PersistentClient(path=CHROMA_PATH)
+    from chromadb.config import Settings
+    client = chromadb.PersistentClient(path=CHROMA_PATH, settings=Settings(anonymized_telemetry=False))
     collection = load_collection(client)
     model = load_embedding_model()
 

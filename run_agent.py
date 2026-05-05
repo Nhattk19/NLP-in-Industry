@@ -7,7 +7,12 @@ Use this to run the agent from command line
 import sys
 import argparse
 import json
+import os
 from pathlib import Path
+
+# Disable ChromaDB telemetry before any imports
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
 from dotenv import load_dotenv
 
 # Load environment variables

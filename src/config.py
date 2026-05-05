@@ -1,6 +1,9 @@
 # config.py
 # Store all configs here, including Hugging Face API key
+import os
 import torch
+
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
 QUERY_PROCESSING_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"  # can change to smaller model if needed
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"

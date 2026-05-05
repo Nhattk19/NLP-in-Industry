@@ -19,7 +19,8 @@ BATCH_SIZE = 128
 MIN_ABSTRACT_WORDS = 10  # ✅ safeguard nhẹ
 
 # ================= INIT =================
-client = chromadb.PersistentClient(path=CHROMA_PATH)
+from chromadb.config import Settings
+client = chromadb.PersistentClient(path=CHROMA_PATH, settings=Settings(anonymized_telemetry=False))
 
 collection = client.get_or_create_collection(
     name=COLLECTION_NAME,
