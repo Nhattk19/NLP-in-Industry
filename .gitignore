@@ -31,3 +31,4 @@ data/data_processed/*.json
 *.sqlite3
 *.db
 *.json
+Google_api_key.txt

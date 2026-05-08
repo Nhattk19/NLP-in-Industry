@@ -93,23 +93,16 @@ def init_rag_resources():
 
 def retrieve_chunks(collection, embedder, query: str, top_k: int = RETRIEVAL_TOP_K):
     query_embedding = embedder.encode([query]).tolist()
-<<<<<<< HEAD
     # Suppress ChromaDB internal logging
     import os
     from contextlib import redirect_stdout, redirect_stderr
-    with redirect_stdout(open(os.devnull, 'w')), redirect_stderr(open(os.devnull, 'w')):
+
+    with redirect_stdout(open(os.devnull, "w")), redirect_stderr(open(os.devnull, "w")):
         results = collection.query(
             query_embeddings=query_embedding,
             n_results=top_k,
             include=["documents", "metadatas", "distances"],
         )
-=======
-    results = collection.query(
-        query_embeddings=query_embedding,
-        n_results=top_k,
-        include=["documents", "metadatas", "distances"],
-    )
->>>>>>> 0fbc897ed8e0703e70ccfb0b334045576a9a10b9
 
     docs, metas, dists = [], [], []
     for doc, meta, dist in zip(

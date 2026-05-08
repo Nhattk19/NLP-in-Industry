@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import os
 from contextlib import redirect_stdout, redirect_stderr
-=======
->>>>>>> 0fbc897ed8e0703e70ccfb0b334045576a9a10b9
 from flashrank import RerankRequest
 
 from core.config import TOP_K
@@ -10,7 +7,6 @@ from core.resources import tokenize
 
 
 def vector_search(collection, query: str, top_k: int = TOP_K) -> list[dict]:
-<<<<<<< HEAD
     # Suppress ChromaDB internal logging
     with redirect_stdout(open(os.devnull, 'w')), redirect_stderr(open(os.devnull, 'w')):
         results = collection.query(
@@ -18,13 +14,6 @@ def vector_search(collection, query: str, top_k: int = TOP_K) -> list[dict]:
             n_results=top_k,
             include=["metadatas", "distances"],
         )
-=======
-    results = collection.query(
-        query_texts=[query],
-        n_results=top_k,
-        include=["metadatas", "distances"],
-    )
->>>>>>> 0fbc897ed8e0703e70ccfb0b334045576a9a10b9
 
     if not results["ids"] or not results["ids"][0]:
         return []
