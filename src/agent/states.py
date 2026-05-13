@@ -14,14 +14,12 @@ class SearchMode(str, Enum):
     SEMANTIC = "semantic"
     LEXICAL = "lexical"
     HYBRID = "hybrid"
-    PAPER_SPECIFIC = "paper_specific"
 
 
 class IntentType(str, Enum):
     """User intent classification"""
     OOD = "ood"  # Out-of-domain
-    GLOBAL = "global"  # Global NLP question
-    SPECIFIC = "specific"  # Specific paper question
+    GLOBAL = "global"  # In-domain NLP/ML/DL/AI question
     UNCLEAR = "unclear"  # Cannot determine
 
 
@@ -36,11 +34,7 @@ class AgentState(TypedDict, total=False):
     intent: str
     intent_confidence: float
     intent_explanation: str
-    paper_id_context: str
-    
-    # ===== Query Refinement =====
     refined_query: str
-    query_type: str
     
     # ===== Search Execution =====
     search_mode: str
@@ -84,9 +78,7 @@ def create_initial_state(query: str, session_id: str = "") -> AgentState:
         "intent": "unclear",
         "intent_confidence": 0.0,
         "intent_explanation": "",
-        "paper_id_context": "",
         "refined_query": "",
-        "query_type": "",
         "search_mode": "hybrid",
         "lexical_results": [],
         "semantic_results": [],

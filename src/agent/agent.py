@@ -24,7 +24,7 @@ from src.agent.nodes.response_formatter import ResponseFormatter
 
 
 class PaperRAGAgent:
-    """Complete RAG Agent for NLP Paper Search and Q&A"""
+    """Complete RAG Agent for NLP/ML/DL/AI paper search and Q&A"""
     
     def __init__(self):
         """Initialize agent components"""
@@ -109,12 +109,9 @@ class PaperRAGAgent:
             state["search_mode"] = "hybrid"
             state["execution_path"] = state.get("execution_path", []) + ["select_search_mode"]
             return state
-        
-        if intent == "specific":
-            state["search_mode"] = "paper_specific"
-        else:
-            # GLOBAL intent - use hybrid by default
-            state["search_mode"] = "hybrid"
+
+        # GLOBAL intent - use hybrid by default
+        state["search_mode"] = "hybrid"
         
         print(f"[OK] Search mode selected: {state['search_mode']}")
         state["execution_path"] = state.get("execution_path", []) + ["select_search_mode"]
@@ -145,6 +142,9 @@ class PaperRAGAgent:
             return state
         
         try:
+            if state.get("bm25_index_updated"):
+                self.search_executor.reload_bm25_searcher()
+            
             # Re-run search on the new data
             state = self.search_executor(state)
             print(f"  [OK] Re-search completed with external papers")

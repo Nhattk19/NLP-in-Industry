@@ -17,10 +17,10 @@ CHROMA_PATH_ABSTRACTS = "./src/chromadb/chroma_store_abstracts"
 import os
 if os.path.exists(CHROMA_PATH_FULLTEXT):
     CHROMA_PATH = CHROMA_PATH_FULLTEXT
-    COLLECTION_NAME = "papers"
+    COLLECTION_NAME = "papers_fulltext"
 else:
-    CHROMA_PATH = CHROMA_PATH_ABSTRACTS
-    COLLECTION_NAME = "papers_abstracts"
+    print(f"[ERROR] Không tìm thấy ChromaDB store ở đường dẫn: {CHROMA_PATH_FULLTEXT}")
+    sys.exit(1)
 
 QUERY_PATH = "./src/queries.json"
 TOP_K = 20

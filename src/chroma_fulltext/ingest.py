@@ -13,7 +13,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 JSONL_PATH = "data/data_processed/papers_full.jsonl"
-CHROMA_PATH = "./src/chroma_fulltext/chroma_store_fulltext"
+CHROMA_PATH = "./data/chroma_store_fulltext"
 COLLECTION_NAME = "papers_fulltext"
 
 BATCH_SIZE = 128

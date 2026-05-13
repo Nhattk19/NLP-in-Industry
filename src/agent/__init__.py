@@ -1,6 +1,6 @@
 """
 Agent Package
-LangGraph-based RAG Agent for NLP Paper Search and Q&A
+LangGraph-based RAG Agent for NLP/ML/DL/AI Paper Search and Q&A
 """
 
 from src.agent.agent import PaperRAGAgent, get_agent

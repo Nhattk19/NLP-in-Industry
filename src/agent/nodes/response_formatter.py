@@ -7,6 +7,30 @@ Format final output to return to user
 
 class ResponseFormatter:
     """Format final response"""
+
+    def _classify_relevance(self, doc: dict) -> str:
+        """Classify relevance using rank first, then score as fallback."""
+        rank = doc.get("rank")
+        if isinstance(rank, int) and rank > 0:
+            if rank <= 3:
+                return "high"
+            if rank <= 7:
+                return "medium"
+            return "low"
+
+        score = doc.get("score", 0)
+        if score is None:
+            score = 0
+        try:
+            score = float(score)
+        except (TypeError, ValueError):
+            score = 0.0
+
+        if score >= 0.7:
+            return "high"
+        if score >= 0.3:
+            return "medium"
+        return "low"
     
     def __call__(self, state: dict) -> dict:
         """Format and prepare final response"""
@@ -21,9 +45,15 @@ class ResponseFormatter:
         for doc in state.get("context_documents", []):
             final_sources.append({
                 "paper_id": doc.get("paper_id"),
+                "chunk_id": doc.get("chunk_id"),
                 "title": doc.get("title"),
+                "source_url": doc.get("source_url", ""),
+                "chunk_index": doc.get("chunk_index"),
+                "chunk_start": doc.get("chunk_start"),
+                "chunk_length": doc.get("chunk_length"),
                 "score": doc.get("score", 0),
-                "relevance": "high" if doc.get("score", 0) > 0.7 else "medium"
+                "source_score": doc.get("source_score", doc.get("score", 0)),
+                "relevance": self._classify_relevance(doc)
             })
         
         state["final_sources"] = final_sources
@@ -42,12 +72,19 @@ class ResponseFormatter:
         external_papers = state.get("external_papers", [])
         external_papers_formatted = []
         if external_papers:
-            for paper in external_papers[:5]:  # Top 5 external papers
+            for paper in external_papers[:10]:  # Top 10 external chunks
+                chunk_text = paper.get("chunk_text") or paper.get("text") or paper.get("snippet", "")
                 external_papers_formatted.append({
+                    "paper_id": paper.get("paper_id", ""),
+                    "chunk_id": paper.get("chunk_id", ""),
                     "title": paper.get("title", ""),
-                    "url": paper.get("url", ""),
+                    "source_url": paper.get("source_url", paper.get("url", "")),
                     "source": paper.get("source", "external"),
-                    "snippet": paper.get("snippet", "")[:200]
+                    "chunk_index": paper.get("chunk_index"),
+                    "chunk_start": paper.get("chunk_start"),
+                    "chunk_length": paper.get("chunk_length"),
+                    "score": paper.get("score", paper.get("similarity", 0)),
+                    "snippet": chunk_text[:200]
                 })
         
         return {

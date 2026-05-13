@@ -7,9 +7,8 @@ Reuses existing code from src/bm25/ and src/chromadb/
 
 import json
 from src.agent.states import SearchMode, IntentType
-from src.bm25.search_bm25 import BM25Searcher
-from src.config import DATA_PATH
-from src.search_engine import apply_rrf_merge
+from src.bm25.search_bm25_for_RAG import BM25ChunkSearcherForRAG
+from src.search_engine_for_rag import apply_rrf_merge
 
 
 class SearchExecutor:
@@ -19,23 +18,49 @@ class SearchExecutor:
         """Initialize search engines"""
         print("[SEARCH_EXECUTOR] Initializing search engines...")
         try:
-            self.bm25_searcher = BM25Searcher(DATA_PATH)
-            print("[OK] BM25 Searcher initialized")
+            self.bm25_searcher = BM25ChunkSearcherForRAG()
+            print("[OK] BM25 Chunk Searcher for RAG initialized")
         except Exception as e:
             print(f"! BM25 Searcher error: {e}")
             self.bm25_searcher = None
         
         # Import ChromaDB retriever
         try:
-            from src.chromadb.retrieve import search as chroma_search
-            from src.chromadb.retrieve import collection as chroma_collection
+            from src.chroma_fulltext.retrieve import search as chroma_search
+            from src.chroma_fulltext.retrieve import collection as chroma_collection
             self.chroma_search = chroma_search
             self.chroma_collection = chroma_collection
-            print("[OK] ChromaDB Retriever initialized")
+            print("[OK] ChromaDB Full-text Retriever initialized")
         except Exception as e:
             print(f"! ChromaDB error: {e}")
             self.chroma_search = None
             self.chroma_collection = None
+
+    def reload_bm25_searcher(self) -> None:
+        """Reload the BM25 index after the shared ChromaDB collection changes."""
+        try:
+            self.bm25_searcher = BM25ChunkSearcherForRAG()
+            print("[OK] BM25 Chunk Searcher for RAG reloaded")
+        except Exception as e:
+            print(f"! BM25 reload error: {e}")
+
+    def _print_paper_titles(self, papers: list) -> None:
+        """Print chunk titles for debugging the search stage."""
+        if not papers:
+            print("  [INFO] No chunks to display")
+            return
+
+        print("  [CHUNKS] Top results:")
+        for i, paper in enumerate(papers[:10], 1):
+            title = paper.get("title") or paper.get("paper_title") or "Unknown Title"
+            paper_id = paper.get("paper_id", "N/A")
+            chunk_id = paper.get("chunk_id") or "N/A"
+            score = paper.get("score", paper.get("rrf_score", 0))
+            chunk_index = paper.get("chunk_index", None)
+            chunk_label = f" | chunk {chunk_index}" if chunk_index is not None and chunk_index != -1 else ""
+            source_url = paper.get("source_url", "")
+            source_label = f" | URL: {source_url[:60]}" if source_url else ""
+            print(f"    [{i}] {title} | PID: {paper_id} | CID: {chunk_id}{chunk_label} | Score: {score:.4f}{source_label}")
     
     def __call__(self, state: dict) -> dict:
         """Execute search"""
@@ -60,8 +85,8 @@ class SearchExecutor:
             state = self._semantic_search(state, query, top_k)
         elif search_mode == "hybrid" or search_mode == SearchMode.HYBRID:
             state = self._hybrid_search(state, query, top_k)
-        elif search_mode == "paper_specific" or search_mode == SearchMode.PAPER_SPECIFIC:
-            state = self._paper_specific_search(state, query, top_k)
+        else:
+            state = self._hybrid_search(state, query, top_k)
         
         state["execution_path"] = state.get("execution_path", []) + ["search_executor"]
         return state
@@ -124,30 +149,16 @@ class SearchExecutor:
         if not semantic_results:
             semantic_results = lexical_results
         
-        # Use generic RRF merge from search_engine
+        # Use generic RRF merge from search_engine_for_rag
         try:
             hybrid_results = apply_rrf_merge(lexical_results, semantic_results, top_k)
             state["hybrid_results"] = hybrid_results
             state["reranked_results"] = hybrid_results
             print(f"[OK] Hybrid Search (RRF): {len(hybrid_results)} results")
+            self._print_paper_titles(hybrid_results)
         except Exception as e:
             print(f"X RRF merge error: {e}")
             state["reranked_results"] = lexical_results or semantic_results
         
         return state
     
-    def _paper_specific_search(self, state: dict, query: str, top_k: int) -> dict:
-        """Search within a specific paper"""
-        paper_id_context = state.get("paper_id_context", "")
-        print(f"Paper-specific search for {paper_id_context}")
-        
-        if self.chroma_search and paper_id_context:
-            try:
-                results = self.chroma_search(query,top_k=top_k, where={"paper_id": paper_id_context})
-                state["semantic_results"] = results
-                state["reranked_results"] = results
-                print(f"[OK] Paper-specific Search: {len(results)} results")
-            except Exception as e:
-                print(f"X Paper-specific search error: {e}")
-        
-        return state

@@ -58,7 +58,7 @@ Query
 │   ├── chromadb/                # Semantic search / rerank / ingest
 │   ├── web/                     # Streamlit web app
 │   ├── config.py                # Cấu hình chung cho search engine
-│   └── search_engine.py         # Orchestrator cho lexical/semantic/hybrid search
+│   └── search_engine_for_rag.py  # Orchestrator cho lexical/semantic/hybrid search
 ├── data/
 │   ├── data_raw/                # Dữ liệu thô và dữ liệu trung gian
 │   ├── data_processed/          # Dữ liệu đã làm sạch
@@ -173,10 +173,10 @@ CLI agent sẽ:
 ### 2. Chạy search engine pipeline
 
 ```bash
-python src/search_engine.py
+python src/search_engine_for_rag.py
 ```
 
-File này điều phối pipeline tìm kiếm theo `MODE` trong `src/search_engine.py`.
+File này điều phối pipeline tìm kiếm theo `MODE` trong `src/search_engine_for_rag.py`.
 
 Các chế độ hiện có:
 
@@ -248,7 +248,7 @@ python src/chroma_fulltext/ingest.py
 
 ### Hybrid search
 
-`src/search_engine.py` và `src/agent/nodes/search_executor.py` dùng Reciprocal Rank Fusion để trộn lexical và semantic.
+`src/search_engine_for_rag.py` và `src/agent/nodes/search_executor.py` dùng Reciprocal Rank Fusion để trộn lexical và semantic.
 
 ## Agent RAG
 
@@ -285,4 +285,3 @@ streamlit run src/web/app.py
 ```
 
 Nếu bạn muốn build lại dữ liệu từ đầu, hãy chạy pipeline `data/src/` trước rồi mới ingest ChromaDB.
-
