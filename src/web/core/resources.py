@@ -1,6 +1,9 @@
 import os
 import re
 
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
+
 import chromadb
 import streamlit as st
 from chromadb.utils import embedding_functions
@@ -57,3 +60,12 @@ def init_bm25() -> tuple:
         corpus_metadata.append(document)
 
     return BM25Okapi(tokenized_corpus), corpus_metadata
+
+
+@st.cache_resource(show_spinner="Preloading search resources...")
+def preload_search_resources():
+    """Warm Chroma, reranker, and BM25 before any search page is used."""
+    collection = init_chromadb()
+    reranker = init_reranker()
+    bm25_engine, bm25_metadata = init_bm25()
+    return collection, reranker, bm25_engine, bm25_metadata

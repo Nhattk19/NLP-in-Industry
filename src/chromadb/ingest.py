@@ -2,6 +2,11 @@
 # Encode documents (title + abstract) into embeddings and store them in ChromaDB for vector search (indexing stage)
 
 import json
+import os
+
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
+
 import chromadb
 import torch
 from sentence_transformers import SentenceTransformer

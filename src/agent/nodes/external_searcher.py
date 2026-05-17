@@ -95,17 +95,32 @@ class ExternalSearcher:
             results = self._collect_candidate_papers(search_query)
             
             print(f"   Found {len(results)} results")
+
+            # Avoid downloading/parsing PDFs for papers already in ChromaDB.
+            # arXiv gives stable paper_id values in the metadata response, so
+            # we can cheaply dedupe before the expensive crawl step.
+            results, skipped_existing = self._remove_existing_db_papers(
+                results,
+                max_selected=self.candidate_results,
+            )
+            if skipped_existing:
+                print(f"   [DB] Skipped {len(skipped_existing)} papers already present in DB before PDF parsing")
+            print(f"   [DB] {len(results)} new candidate papers remain before PDF parsing")
+
+            # Tighten the result set before PDF parsing so unrelated arXiv
+            # papers do not waste crawl/parse time.
+            results = self._filter_and_rank_external_results(results, state.get("query", ""))
             
             # Parse PDFs if enabled
             if self.enable_pdf_parsing and results:
                 results = self._enrich_with_pdf_content(results)
 
-            # Tighten the result set before ingestion so unrelated arXiv
-            # papers do not dominate the external feedback loop.
+            # Re-rank after PDF enrichment, then run a final duplicate check
+            # just before ingestion in case another job inserted the paper.
             results = self._filter_and_rank_external_results(results, state.get("query", ""))
-            results, skipped_existing = self._remove_existing_db_papers(results)
-            if skipped_existing:
-                print(f"   [DB] Skipped {len(skipped_existing)} papers already present in DB")
+            results, skipped_after_parse = self._remove_existing_db_papers(results)
+            if skipped_after_parse:
+                print(f"   [DB] Skipped {len(skipped_after_parse)} papers already present in DB after PDF parsing")
             print(f"   [DB] {len(results)} new papers remain after DB filtering")
             
             # Ingest results into ChromaDB for future searches
@@ -468,16 +483,18 @@ User question:
             print(f"      [WARN] DB existence check failed for {paper_id}: {str(e)}")
             return False
 
-    def _remove_existing_db_papers(self, results: List[Dict]):
-        """Keep only the first 5 new papers that are not already stored in ChromaDB."""
+    def _remove_existing_db_papers(self, results: List[Dict], max_selected: Optional[int] = None):
+        """Keep new papers that are not already stored in ChromaDB."""
         if not results:
             return [], []
+
+        max_selected = max_selected or self.max_results
 
         try:
             collection = self._get_chromadb_collection()
         except Exception as e:
             print(f"   [WARN] Could not open ChromaDB for duplicate check: {str(e)}")
-            return results[: self.max_results], []
+            return results[:max_selected], []
 
         selected = []
         skipped = []
@@ -494,7 +511,7 @@ User question:
                 continue
 
             selected.append(paper)
-            if len(selected) >= self.max_results:
+            if len(selected) >= max_selected:
                 break
 
         return selected, skipped

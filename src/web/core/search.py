@@ -1,5 +1,9 @@
 import os
 from contextlib import redirect_stdout, redirect_stderr
+
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
+
 from flashrank import RerankRequest
 
 from core.config import TOP_K

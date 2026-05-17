@@ -14,6 +14,9 @@ from contextlib import redirect_stderr, redirect_stdout
 from functools import lru_cache
 from pathlib import Path
 
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
+
 import chromadb
 import torch
 from sentence_transformers import SentenceTransformer

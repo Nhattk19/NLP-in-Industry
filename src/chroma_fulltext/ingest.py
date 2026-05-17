@@ -1,7 +1,11 @@
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
+
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
 
 import chromadb
 import torch

@@ -1,8 +1,10 @@
+import re
 from html import escape
 
 import streamlit as st
 
 from core.search import hybrid_search
+from core.detail_rag import paper_has_fulltext_chunks, run_detail_rag
 from pages.results import RESULT_CARD_STYLE, build_results_dataframe, render_result_card
 
 
@@ -103,6 +105,161 @@ div.stButton > button[kind="primary"] {
 }
 .chat-placeholder-title { font-size: 1.05rem; font-weight: 700; color: #3f342b; margin-bottom: 10px; }
 .chat-placeholder-text { font-size: 0.9rem; color: #746556; line-height: 1.6; }
+.paper-rag-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.paper-rag-header {
+    background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
+    border: 1px solid #dbe7fb;
+    border-radius: 16px;
+    padding: 14px 14px 12px;
+}
+.paper-rag-kicker {
+    display: inline-flex;
+    align-items: center;
+    background: #eef5ff;
+    color: #1a73e8;
+    border: 1px solid #d0defb;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    margin-bottom: 10px;
+}
+.paper-rag-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #2f2923;
+    margin-bottom: 6px;
+}
+.paper-rag-subtitle {
+    font-size: 0.85rem;
+    color: #6f5f52;
+    line-height: 1.55;
+}
+.paper-rag-history {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.paper-rag-empty {
+    background: #fbfdff;
+    border: 1px dashed #dbe7fb;
+    border-radius: 14px;
+    padding: 14px;
+    color: #7a6d60;
+    font-size: 0.88rem;
+    line-height: 1.6;
+}
+.paper-rag-bubble {
+    border-radius: 16px;
+    padding: 12px 14px;
+    line-height: 1.65;
+    font-size: 0.9rem;
+    border: 1px solid #e2e9f5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.paper-rag-bubble-user {
+    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+    color: #ffffff;
+    margin-left: 24px;
+}
+.paper-rag-bubble-assistant {
+    background: #ffffff;
+    color: #2f2923;
+    margin-right: 10px;
+    box-shadow: 0 8px 20px rgba(26, 115, 232, 0.05);
+}
+.paper-rag-sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+    margin-top: 10px;
+}
+.paper-rag-source-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #f6f8fc;
+    border: 1px solid #dbe5f2;
+    border-radius: 999px;
+    box-shadow: 0 1px 0 rgba(26, 115, 232, 0.02);
+    transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+    max-width: 100%;
+}
+.paper-rag-source-pill:hover {
+    background: #eef4ff;
+    border-color: #c9d8f2;
+    transform: translateY(-1px);
+}
+.paper-rag-source-title {
+    color: #2f2923;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.25;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.paper-rag-source-chip {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    background: #edf3ff;
+    color: #1a73e8;
+    border: 1px solid #d3dff5;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    white-space: nowrap;
+}
+.chunk-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    vertical-align: baseline;
+    padding: 0.08rem 0.55rem;
+    margin: 0 2px;
+    border-radius: 999px;
+    background: #f4f7ff;
+    border: 1px solid #d8e2fb;
+    color: #5f6b86;
+    font-size: 0.78em;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+.chunk-tag-label {
+    color: #7d8aa5;
+    font-size: 0.9em;
+    letter-spacing: 0.01em;
+}
+.chunk-tag-sep {
+    color: #a4afc3;
+}
+.chunk-tag-id {
+    color: #1a73e8;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+.paper-rag-form {
+    background: #fbfdff;
+    border: 1px solid #dbe7fb;
+    border-radius: 16px;
+    padding: 12px;
+}
 .paper-tab-empty { font-size: 0.92rem; color: #7e7063; padding: 8px 0; }
 .detail-tab-offset { margin-top: 34px; }
 </style>
@@ -123,6 +280,195 @@ def _build_related_query(paper: dict) -> str:
     title = str(paper.get("title", "")).strip()
     abstract = str(paper.get("abstract", "")).strip()
     return f"{title}. {abstract}" if title and abstract else title or abstract
+
+
+def _detail_chat_key(paper_id: str) -> str:
+    return f"detail_chat_history::{paper_id}"
+
+
+_CHUNK_ANNOTATION_RE = re.compile(r"\[Chunk:\s*([^\]]+)\]", re.IGNORECASE)
+
+
+def _render_annotated_text(content: object) -> str:
+    safe = escape(str(content or ""))
+
+    def _replace(match: re.Match[str]) -> str:
+        chunk_id = escape(match.group(1).strip())
+        return (
+            '<span class="chunk-tag">'
+            '<span class="chunk-tag-label">Chunk</span>'
+            '<span class="chunk-tag-sep">:</span>'
+            f'<span class="chunk-tag-id">{chunk_id}</span>'
+            '</span>'
+        )
+
+    return _CHUNK_ANNOTATION_RE.sub(_replace, safe).replace("\n", "<br>")
+
+
+def _sources_html(sources: list[dict]) -> str:
+    items = ""
+    for source in sources or []:
+        title = escape(_normalize_text(source.get("title") or "Untitled"))
+        chunk_id = escape(_normalize_text(source.get("chunk_id") or ""))
+        metric_value = source.get("confidence")
+        metric_label = "conf"
+        if metric_value in (None, "", "nan"):
+            metric_value = source.get("score")
+            metric_label = "score"
+        if metric_value in (None, "", "nan"):
+            metric_value = source.get("source_score")
+            metric_label = "score"
+
+        row = f'<span class="paper-rag-source-title" title="{title}">{title}</span>'
+        if chunk_id:
+            row += f'<span class="paper-rag-source-chip">{chunk_id}</span>'
+        if metric_value not in (None, "", "nan"):
+            try:
+                metric_text = f"{float(metric_value):.3f}"
+            except (TypeError, ValueError):
+                metric_text = str(metric_value)
+            row += f'<span class="paper-rag-source-chip">{metric_label} {escape(metric_text)}</span>'
+
+        items += f'<div class="paper-rag-source-pill">{row}</div>'
+
+    return f'<div class="paper-rag-sources">{items}</div>' if items else ""
+
+
+def _init_detail_chat_session(paper_id: str) -> list[dict]:
+    st.session_state.setdefault("detail_chat_history", {})
+    st.session_state.detail_chat_history.setdefault(paper_id, [])
+    return st.session_state.detail_chat_history[paper_id]
+
+
+def _render_detail_chat_history(history: list[dict]) -> None:
+    if not history:
+        st.markdown(
+            """
+            <div class="paper-rag-empty">
+                Ask a question about this paper and the assistant will retrieve
+                relevant chunks from the current paper only, then answer with
+                chunk-level grounding.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    for message in history:
+        role = message.get("role", "assistant")
+        content = message.get("content", "")
+        sources = message.get("sources", [])
+
+        bubble_class = "paper-rag-bubble-user" if role == "user" else "paper-rag-bubble-assistant"
+        with st.container():
+            st.markdown(
+                f'<div class="paper-rag-bubble {bubble_class}">{_render_annotated_text(content)}</div>',
+                unsafe_allow_html=True,
+            )
+            if role == "assistant" and sources:
+                st.markdown(_sources_html(sources), unsafe_allow_html=True)
+
+
+def _render_detail_chat_unavailable() -> None:
+    st.markdown(
+        """
+        <div class="paper-rag-panel">
+            <div class="paper-rag-header">
+                <div class="paper-rag-kicker">Paper RAG</div>
+                <div class="paper-rag-title">Ask about this paper</div>
+                <div class="paper-rag-subtitle">
+                    This paper does not yet support Q&A.
+                </div>
+            </div>
+            <div class="paper-rag-empty">
+                This paper does not yet support Q&A.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_detail_chat_panel(paper: dict) -> None:
+    paper_id = str(paper.get("paper_id", "")).strip()
+    history = _init_detail_chat_session(paper_id)
+
+    st.markdown(
+        """
+        <div class="paper-rag-panel">
+            <div class="paper-rag-header">
+                <div class="paper-rag-kicker">Paper RAG</div>
+                <div class="paper-rag-title">Ask about this paper</div>
+                <div class="paper-rag-subtitle">
+                    Retrieval is limited to the current paper's chunks, so answers stay
+                    grounded in the selected paper only.
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    _render_detail_chat_history(history)
+
+
+    with st.form(key=f"detail_rag_form::{paper_id}", clear_on_submit=True):
+        question = st.text_area(
+            "Ask this paper",
+            placeholder="For example: What is the main method? How do they evaluate it? What are the limitations?",
+            height=100,
+            label_visibility="collapsed",
+        )
+        submitted = st.form_submit_button("Ask paper")
+
+    if not submitted:
+        return
+
+    question = (question or "").strip()
+    if not question:
+        st.warning("Please type a question first.")
+        return
+
+    history.append({"role": "user", "content": question})
+    with st.spinner("Retrieving from this paper..."):
+        result = run_detail_rag(paper, question)
+
+    answer = result.get("answer", "")
+    history.append(
+        {
+            "role": "assistant",
+            "content": answer,
+            "sources": result.get("sources", []),
+            "confidence": result.get("confidence", 0.0),
+            "execution_path": result.get("execution_path", []),
+        }
+    )
+    st.rerun()
+
+
+def _render_detail_chat_section(paper: dict) -> None:
+    paper_id = str(paper.get("paper_id", "")).strip()
+    if paper_has_fulltext_chunks(paper_id):
+        _render_detail_chat_panel(paper)
+        return
+
+    _render_detail_chat_unavailable()
+
+
+def _back_to_results() -> None:
+    st.session_state.page = "results"
+
+    query = str(st.session_state.get("search_query", "") or "").strip()
+    if query and not str(st.query_params.get("q", "") or "").strip():
+        st.query_params["q"] = query
+    if "semantic" not in st.query_params:
+        st.query_params["semantic"] = "1" if bool(st.session_state.get("enable_semantic", True)) else "0"
+    if "page" not in st.query_params:
+        st.query_params["page"] = str(st.session_state.get("result_page", 0) or 0)
+
+    if "detail" in st.query_params:
+        del st.query_params["detail"]
+    st.rerun()
 
 
 def _get_related_papers(paper: dict, collection, reranker, bm25_engine, bm25_metadata) -> list[dict]:
@@ -171,9 +517,7 @@ def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -
     if not paper:
         st.warning("Paper information was not found.")
         if st.button("Back to search results"):
-            st.query_params.clear()
-            st.session_state.page = "results"
-            st.rerun()
+            _back_to_results()
         return
 
     title = escape(_normalize_text(paper.get("title", "Unknown Title")))
@@ -202,10 +546,8 @@ def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -
 
     back_col, _ = st.columns([1, 6])
     with back_col:
-        if st.button("Back to Results", use_container_width=True):
-            st.query_params.clear()
-            st.session_state.page = "results"
-            st.rerun()
+        if st.button("Back to Results", width="stretch"):
+            _back_to_results()
 
     main_col, side_col = st.columns([2, 1], gap="large")
 
@@ -249,7 +591,7 @@ def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -
             if st.button(
                 f"{cit_net_count} Citations",
                 key="detail_tab_citations",
-                use_container_width=True,
+                width="stretch",
                 type="primary" if st.session_state.detail_active_tab == "citations" else "secondary",
             ):
                 st.session_state.detail_active_tab = "citations"
@@ -258,7 +600,7 @@ def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -
             if st.button(
                 f"{ref_count} References",
                 key="detail_tab_references",
-                use_container_width=True,
+                width="stretch",
                 type="primary" if st.session_state.detail_active_tab == "references" else "secondary",
             ):
                 st.session_state.detail_active_tab = "references"
@@ -267,7 +609,7 @@ def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -
             if st.button(
                 "Related Papers",
                 key="detail_tab_related",
-                use_container_width=True,
+                width="stretch",
                 type="primary" if st.session_state.detail_active_tab == "related" else "secondary",
             ):
                 st.session_state.detail_active_tab = "related"
@@ -307,14 +649,4 @@ def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -
                 st.markdown('<div class="paper-tab-empty">No suitable related papers found.</div>', unsafe_allow_html=True)
 
     with side_col:
-        st.markdown(
-            """
-            <div class="chat-placeholder">
-                <div class="chat-placeholder-title">Chat Panel</div>
-                <div class="chat-placeholder-text">
-                    This right column is reserved for the future chat experience.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        _render_detail_chat_section(paper)

@@ -1,5 +1,9 @@
 import os
 import json
+
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
+
 from flashrank import Ranker, RerankRequest
 
 # ================= CẤU HÌNH ĐƯỜNG DẪN =================

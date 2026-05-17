@@ -18,7 +18,7 @@ class ContextExtractor:
     
     def __init__(self, max_tokens: int = None):
         """Initialize context extractor"""
-        self.max_tokens = max_tokens or MAX_CONTEXT_TOKENS
+        self.max_tokens = MAX_CONTEXT_TOKENS if max_tokens is None else max_tokens
     
     def __call__(self, state: dict) -> dict:
         """Extract context from search results"""
@@ -45,8 +45,11 @@ class ContextExtractor:
         token_count = 0
         context_documents = []
         seen_chunk_ids = set()
+        max_results = state.get("context_result_limit", 10)
+        max_tokens = state.get("context_max_tokens", self.max_tokens)
+        result_items = results if max_results is None else results[: int(max_results)]
         
-        for i, paper in enumerate(results[:10], 1):
+        for i, paper in enumerate(result_items, 1):
             chunk_text = (
                 paper.get("chunk_text")
                 or paper.get("text")
@@ -92,8 +95,8 @@ class ContextExtractor:
             # Count tokens (rough estimate: 1 token ≈ 4 characters)
             tokens_in_section = len(paper_section) // 4
             
-            if token_count + tokens_in_section > self.max_tokens:
-                print(f"i Reached token limit ({token_count}/{self.max_tokens}), stopping")
+            if max_tokens is not None and token_count + tokens_in_section > max_tokens:
+                print(f"i Reached token limit ({token_count}/{max_tokens}), stopping")
                 break
             
             context_parts.append(paper_section)
