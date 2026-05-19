@@ -1,287 +1,253 @@
 # NLP-KG Search
 
-Hệ thống tra cứu và hỏi đáp paper NLP/ML dựa trên kết hợp:
+NLP-KG Search is a search and question-answering system for NLP/ML papers. The project combines lexical search, semantic search, and a RAG agent to help users retrieve papers, inspect paper details, and ask questions through a web interface.
 
-- `BM25` cho tìm kiếm từ khóa
-- `ChromaDB` cho tìm kiếm ngữ nghĩa
-- `RRF` để trộn kết quả lexical + semantic
-- `LangGraph` để điều phối luồng RAG
-- `Gemini` để phân loại intent, tạo câu trả lời và tự đánh giá chất lượng
-- `arXiv API` để tìm paper bên ngoài khi kết quả nội bộ chưa đủ tốt
-- `Streamlit` để cung cấp giao diện duyệt paper và chat RAG
+## 1. Project Overview
 
-## Tính năng chính
+The system includes the following main components:
 
-- Tìm kiếm paper theo 2 chế độ:
-  - `Lexical` bằng BM25
-  - `Semantic` bằng embedding + ChromaDB
-- `Hybrid search` trộn hai nguồn bằng Reciprocal Rank Fusion
-- Hiểu intent của người dùng:
-  - `ood` - câu hỏi ngoài miền NLP/ML
-  - `global` - câu hỏi chung về NLP/ML
-  - `specific` - câu hỏi về một paper cụ thể
-- Sinh câu trả lời có trích dẫn paper
-- Tự đánh giá chất lượng câu trả lời
-- Nếu câu trả lời còn yếu, agent có thể:
-  - tìm paper mới từ arXiv
-  - nạp vào ChromaDB
-  - truy vấn lại và tạo câu trả lời lần nữa
-- Giao diện web gồm:
-  - trang home
-  - trang kết quả tìm kiếm
-  - trang chi tiết paper
-  - trang chat RAG
+- `BM25`: performs lexical keyword search over paper titles and abstracts.
+- `ChromaDB`: stores vector embeddings for semantic search.
+- `Sentence Transformers`: generates embeddings for paper abstracts and full texts.
+- `FlashRank`: reranks semantic search results.
+- `RRF`: combines lexical and semantic results for hybrid search.
+- `LangGraph`: orchestrates the RAG agent workflow.
+- `Gemini`: classifies intent, generates answers, and evaluates answer quality.
+- `arXiv API`: retrieves external papers when the internal corpus is insufficient.
+- `Streamlit`: provides the web interface for search, paper details, and RAG chat.
 
-## Kiến trúc tổng quan
-
-```text
-Query
-  -> Intent Classifier
-  -> Search Mode Selector
-  -> Search Executor
-  -> Context Extractor
-  -> Answer Generator
-  -> Result Evaluator
-  -> External Search (nếu cần)
-  -> Re-search / Re-evaluate
-  -> Response Formatter
-```
-
-## Cấu trúc thư mục
+Important project structure:
 
 ```text
 .
-├── run_agent.py                 # CLI entry point cho agent
-├── src/
-│   ├── agent/                   # LangGraph agent và các node
-│   ├── bm25/                    # BM25 searcher
-│   ├── chromadb/                # Semantic search / rerank / ingest
-│   ├── web/                     # Streamlit web app
-│   ├── config.py                # Cấu hình chung cho search engine
-│   └── search_engine_for_rag.py  # Orchestrator cho lexical/semantic/hybrid search
-├── data/
-│   ├── data_raw/                # Dữ liệu thô và dữ liệu trung gian
-│   ├── data_processed/          # Dữ liệu đã làm sạch
-│   └── src/                     # Script tiền xử lý và đánh giá
-├── configs/
-├── md/
-└── requirements.txt
+|-- run_agent.py                 # CLI entry point for the RAG agent
+|-- requirements.txt             # Main dependencies
+|-- .env.example                 # Environment configuration template
+|-- data/
+|   |-- data_processed/          # Processed paper data
+|   `-- src/                     # Data processing scripts
+|-- src/
+|   |-- agent/                   # LangGraph agent and RAG nodes
+|   |-- bm25/                    # BM25 search
+|   |-- chromadb/                # Abstract vector store and semantic search
+|   |-- chroma_fulltext/         # Full-text vector store for RAG chat
+|   |-- web/                     # Streamlit web app
+|   `-- search_engine_for_rag.py # Hybrid search / RRF
+`-- md/                          # System flow documentation
 ```
 
-## Dữ liệu và tài nguyên có sẵn
+## 2. Environment Setup Instructions
 
-Repo hiện đã có sẵn một số asset để chạy demo ngay:
+Environment requirements:
 
-- `data/data_processed/final_cleaned_data.jsonl`: dữ liệu paper đã làm sạch
-- `src/chromadb/chroma_store_abstracts/`: vector store cho search theo abstract
-- `src/chroma_fulltext/chroma_store_fulltext/`: vector store cho chat RAG full-text
-- `src/src/models_cache/`: cache model reranker
+- Python 3.10 or later.
+- Git.
+- Internet access for the first-time download of embedding/reranker models and external API calls.
+- A Google Gemini API key if you want to run the RAG agent or chat features.
 
-Nếu muốn build lại dữ liệu từ đầu, xem phần `Pipeline dữ liệu` bên dưới.
-
-## Cài đặt
-
-### 1. Tạo môi trường Python
+Create a virtual environment:
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate
 ```
 
-### 2. Cài dependency
+Activate it on Windows PowerShell:
 
 ```bash
-pip install -r requirements.txt
+.venv\Scripts\Activate.ps1
 ```
 
-Một số module UI và chat trong code còn dùng thêm các package như `streamlit`, `pandas`, `altair`, `tqdm`, `openai`, `torch`, `transformers`. Nếu môi trường của bạn chưa có sẵn, hãy cài bổ sung khi gặp lỗi import.
+Activate it on macOS/Linux:
 
-## Cấu hình
+```bash
+source .venv/bin/activate
+```
 
-### 1. Gemini cho CLI agent
+Create the environment configuration file:
 
-File `.env.example` đang trỏ tới:
+```bash
+copy .env.example .env
+```
+
+On macOS/Linux:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and configure the important variables:
 
 ```env
 GOOGLE_API_KEY=./Google_api_key.txt
+GEMINI_MODEL=gemini-2.5-flash
+MAX_CONTEXT_TOKENS=2000
+LLM_TEMPERATURE=0.2
+LLM_MAX_TOKENS=2000
+STREAMLIT_PORT=8501
 ```
 
-Bạn có thể:
+There are two ways to provide the Gemini key:
 
-- đặt API key vào file `Google_api_key.txt`
-- hoặc tự set biến môi trường `GOOGLE_API_KEY`
+- Put the API key directly in the `GOOGLE_API_KEY` variable.
+- Or create `Google_api_key.txt` in the project root and keep `GOOGLE_API_KEY=./Google_api_key.txt`.
 
-Các biến chính cho agent:
-
-| Biến | Mục đích | Mặc định |
-| --- | --- | --- |
-| `GOOGLE_API_KEY` | Key cho Gemini | `./Google_api_key.txt` |
-| `GEMINI_MODEL` | Model dùng cho classifier/generator/evaluator | `gemini-2.5-flash` |
-| `MAX_CONTEXT_TOKENS` | Giới hạn context cho RAG | `2000` trong `.env.example` |
-| `LLM_TEMPERATURE` | Nhiệt độ sinh câu trả lời | `0.2` |
-| `LLM_MAX_TOKENS` | Giới hạn token output | `1000` |
-| `EXTERNAL_SEARCH_NUM_RESULTS` | Số paper lấy từ arXiv | `5` |
-| `PDF_PARSER_ENABLED` | Bật/tắt parse PDF | `true` |
-
-### 2. OpenAI cho chat RAG trên web
-
-Chat page của Streamlit đọc key từ:
-
-```text
-src/web/pages/api_agent.txt
-```
-
-Hãy tạo file này và đặt OpenAI API key vào đó nếu bạn muốn dùng trang chat.
-
-### 3. Semantic Scholar API cho pipeline dữ liệu
-
-Các script trong `data/src/` đọc key từ:
+If you run the data pipeline with Semantic Scholar, create this file:
 
 ```text
 data/src/api.txt
 ```
 
-File này được dùng khi bạn muốn tải và xử lý dữ liệu gốc từ Semantic Scholar.
+Then place the Semantic Scholar API key inside that file.
 
-## Chạy ứng dụng
+## 3. Dependency Installation Steps
 
-### 1. Chạy CLI agent
-
-```bash
-python run_agent.py --interactive
-```
-
-Các mode khác:
+Install all required dependencies:
 
 ```bash
-python run_agent.py --query "What is SOTA for Named Entity Recognition?"
-python run_agent.py --examples
-python run_agent.py --batch queries.json
-python run_agent.py --output results.json
+pip install -r requirements.txt
 ```
 
-CLI agent sẽ:
+## 4. How To Train The Model
 
-- phân loại intent
-- chọn search mode
-- truy vấn BM25/ChromaDB
-- build context
-- tạo câu trả lời bằng Gemini
-- chấm điểm câu trả lời
-- gọi arXiv nếu cần
+This project does not train a supervised neural model from scratch. In this project, "training" means processing the paper data, generating embeddings, and rebuilding the search indexes.
 
-### 2. Chạy search engine pipeline
+### 4.1. Process Paper Data
+
+Run the scripts in `data/src/` in order if you need to rebuild the dataset:
 
 ```bash
-python src/search_engine_for_rag.py
+python data/src/1_loose_filter.py
+python data/src/2_map.py
+python data/src/3_strict_filter.py
+python data/src/4_clean_and_merge.py
+python data/src/5_check_is_survey.py
 ```
 
-File này điều phối pipeline tìm kiếm theo `MODE` trong `src/search_engine_for_rag.py`.
+After the pipeline finishes, the cleaned data is stored in `data/data_processed/`.
 
-Các chế độ hiện có:
+### 4.2. Build The Abstract Vector Store
 
-- `lexical`
-- `semantic`
-- `hybrid`
-
-Mặc định repo đang dùng `hybrid`.
-
-### 3. Chạy web app
-
-```bash
-streamlit run src/web/app.py
-```
-
-Web app gồm:
-
-- Home page: tìm kiếm paper, bật/tắt semantic search, mở chat
-- Results page: danh sách kết quả, filter theo năm và survey
-- Detail page: xem thông tin paper, citations, references, related papers
-- Chat page: RAG chat dùng full-text ChromaDB + rerank + OpenAI
-
-## Pipeline dữ liệu
-
-Các script trong `data/src/` tạo ra bộ dữ liệu sạch dùng cho indexing và search.
-
-### Các bước chính
-
-1. `data/src/1_loose_filter.py`
-   - lấy candidate papers từ Semantic Scholar dataset
-2. `data/src/2_map.py`
-   - enrich paper bằng abstract, references, citations, external IDs
-3. `data/src/3_strict_filter.py`
-   - chấm điểm và lọc paper thật sự liên quan đến NLP
-4. `data/src/4_clean_and_merge.py`
-   - gộp và làm sạch dữ liệu, xuất `final_cleaned_data.jsonl`
-5. `data/src/5_check_is_survey.py`
-   - gán nhãn survey/review bằng model phân loại
-
-### Tái tạo ChromaDB abstract
-
-Nếu muốn build lại vector store cho search theo abstract:
+This vector store is used for semantic search over paper titles and abstracts:
 
 ```bash
 python src/chromadb/ingest.py
 ```
 
-### Tái tạo full-text store
+Default output:
 
-Nếu muốn build lại kho full-text cho chat RAG:
+```text
+src/chromadb/chroma_store_abstracts/
+```
+
+### 4.3. Build The Full-Text Vector Store
+
+This vector store is used for RAG chat over full-text papers:
 
 ```bash
 python src/chroma_fulltext/ingest.py
 ```
 
-## Luồng tìm kiếm
+Default output:
 
-### BM25
+```text
+data/chroma_store_fulltext/
+```
 
-`src/bm25/search_bm25.py` xây index từ `title + abstract` và trả về top-k paper theo điểm BM25.
-
-### Semantic search
-
-`src/chromadb/retrieve.py` query ChromaDB bằng embedding model `all-MiniLM-L6-v2`.
-
-### Reranking
-
-`src/chromadb/rerank.py` dùng FlashRank (`ms-marco-MiniLM-L-12-v2`) để sắp xếp lại kết quả semantic.
-
-### Hybrid search
-
-`src/search_engine_for_rag.py` và `src/agent/nodes/search_executor.py` dùng Reciprocal Rank Fusion để trộn lexical và semantic.
-
-## Agent RAG
-
-Agent trong `src/agent/` chạy theo state machine của `LangGraph`:
-
-- `intent_classifier.py`
-- `search_executor.py`
-- `context_extractor.py`
-- `answer_generator.py`
-- `result_evaluator.py`
-- `external_searcher.py`
-- `response_formatter.py`
-
-Đặc điểm đáng chú ý:
-
-- Query ngoài miền NLP được xử lý riêng, không đi qua search nội bộ
-- Câu trả lời luôn cố gắng trích dẫn bằng `Paper: ...`
-- Nếu điểm đánh giá thấp, agent có thể gọi arXiv và thử lại tối đa 2 vòng
-
-## Lưu ý
-
-- `data/data_raw/`, `data/data_processed/*.jsonl`, các file kết quả search và DB nhị phân đã được ignore trong `.gitignore`
-- `Google_api_key.txt`, `data/src/api.txt`, `src/web/pages/api_agent.txt` nên được xem là secret local, không commit lên git
-- Nếu web app báo thiếu package, hãy cài thêm các dependency UI/chat còn thiếu trong môi trường của bạn
-
-## Gợi ý sử dụng nhanh
-
-Nếu bạn chỉ muốn thử ngay:
+### 4.4. Run The Search Pipeline
 
 ```bash
-pip install -r requirements.txt
+python src/search_engine_for_rag.py
+```
+
+This pipeline combines BM25, ChromaDB, and RRF to produce hybrid search results.
+
+## 5. How To Run Inference Or The Deployed System
+
+### 5.1. Run CLI Inference
+
+Run a single query:
+
+```bash
 python run_agent.py --query "What is BERT pretraining?"
+```
+
+Run interactive question answering:
+
+```bash
+python run_agent.py --interactive
+```
+
+Run built-in examples:
+
+```bash
+python run_agent.py --examples
+```
+
+Run batch queries from a JSON file:
+
+```bash
+python run_agent.py --batch queries.json --output results.json
+```
+
+### 5.2. Run The Streamlit Web App
+
+```bash
 streamlit run src/web/app.py
 ```
 
-Nếu bạn muốn build lại dữ liệu từ đầu, hãy chạy pipeline `data/src/` trước rồi mới ingest ChromaDB.
+After the app starts, open:
+
+```text
+http://localhost:8501
+```
+
+The web app supports:
+
+- Home page: enter a query and enable/disable semantic search.
+- Results page: view, filter, and rank retrieved papers.
+- Detail page: inspect detailed information for a selected paper.
+- Chat page: ask questions using the RAG agent.
+
+If the app reports that ChromaDB cannot be found, rebuild the indexes:
+
+```bash
+python src/chromadb/ingest.py
+python src/chroma_fulltext/ingest.py
+```
+
+## 6. Description Of Deployment Method
+
+The deployment method is a Streamlit application running in a Python environment with the required data files and vector stores available locally.
+
+Deployment steps:
+
+1. Prepare a server or local machine with Python 3.10+.
+2. Clone the project source code.
+3. Create a virtual environment and install dependencies.
+4. Configure `.env` and the required API keys.
+5. Make sure the processed data and ChromaDB stores are available, or rebuild them with the ingest scripts.
+6. Start the application with Streamlit.
+
+Local deployment command:
+
+```bash
+streamlit run src/web/app.py 
+```
+
+Deployment architecture:
+
+```text
+User Browser
+    |
+    v
+Streamlit Web App
+    |
+    |-- BM25 lexical search
+    |-- ChromaDB semantic search
+    |-- FlashRank reranker
+    |-- LangGraph RAG agent
+    |-- Gemini API
+    `-- arXiv API fallback
+```
+
+The application does not require a separate model server. Embedding and reranker models are loaded directly inside the Python process, ChromaDB is stored locally on disk, and the LLM is accessed through the Gemini API.
