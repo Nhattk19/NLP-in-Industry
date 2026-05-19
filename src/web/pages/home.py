@@ -3,7 +3,7 @@ import streamlit as st
 
 def render_home_page() -> None:
     st.write("<br><br>", unsafe_allow_html=True)
-    st.markdown('<p class="title-text">NLP-KG</p>', unsafe_allow_html=True)
+    st.markdown('<p class="title-text">NLP Scholar</p>', unsafe_allow_html=True)
     st.markdown(
         '<p class="subtitle-text">Explore Scholarly Entities in Natural Language Processing</p>',
         unsafe_allow_html=True,

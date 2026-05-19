@@ -3,7 +3,7 @@ import streamlit as st
 
 def apply_page_config() -> None:
     st.set_page_config(
-        page_title="NLP-KG Search",
+        page_title="NLP Scholar",
         page_icon="Search",
         layout="wide",
         initial_sidebar_state="expanded",
