@@ -105,125 +105,171 @@ div.stButton > button[kind="primary"] {
 }
 .chat-placeholder-title { font-size: 1.05rem; font-weight: 700; color: #3f342b; margin-bottom: 10px; }
 .chat-placeholder-text { font-size: 0.9rem; color: #746556; line-height: 1.6; }
-.paper-rag-panel {
+.st-key-paper_chat_panel {
+    position: sticky;
+    top: 20px;
+}
+.paper-chat-frame {
+    height: calc(70vh - 76px);
+    min-height: 430px;
+    max-height: 680px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    overflow: hidden;
+    background: #f7f8fa;
+    border: 1px solid #d8dee9;
+    border-bottom: 0;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
 }
-.paper-rag-header {
-    background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
-    border: 1px solid #dbe7fb;
-    border-radius: 16px;
-    padding: 14px 14px 12px;
+.paper-chat-header {
+    flex: 0 0 auto;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 14px 16px 12px;
 }
-.paper-rag-kicker {
-    display: inline-flex;
-    align-items: center;
-    background: #eef5ff;
-    color: #1a73e8;
-    border: 1px solid #d0defb;
-    border-radius: 999px;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    margin-bottom: 10px;
-}
-.paper-rag-title {
+.paper-chat-title {
     font-size: 1rem;
     font-weight: 800;
-    color: #2f2923;
-    margin-bottom: 6px;
+    color: #1f2937;
+    margin-bottom: 3px;
 }
-.paper-rag-subtitle {
-    font-size: 0.85rem;
-    color: #6f5f52;
-    line-height: 1.55;
+.paper-chat-description {
+    font-size: 0.82rem;
+    color: #6b7280;
+    line-height: 1.4;
 }
-.paper-rag-history {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-height: 420px;
+.paper-chat-messages {
+    flex: 1 1 auto;
     overflow-y: auto;
-    padding-right: 4px;
-}
-.paper-rag-empty {
-    background: #fbfdff;
-    border: 1px dashed #dbe7fb;
-    border-radius: 14px;
     padding: 14px;
-    color: #7a6d60;
-    font-size: 0.88rem;
-    line-height: 1.6;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
 }
-.paper-rag-bubble {
-    border-radius: 16px;
-    padding: 12px 14px;
-    line-height: 1.65;
-    font-size: 0.9rem;
-    border: 1px solid #e2e9f5;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-.paper-rag-bubble-user {
-    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
-    color: #ffffff;
-    margin-left: 24px;
-}
-.paper-rag-bubble-assistant {
-    background: #ffffff;
-    color: #2f2923;
-    margin-right: 10px;
-    box-shadow: 0 8px 20px rgba(26, 115, 232, 0.05);
-}
-.paper-rag-sources {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: flex-start;
-    margin-top: 10px;
-}
-.paper-rag-source-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    background: #f6f8fc;
-    border: 1px solid #dbe5f2;
+.paper-chat-messages::-webkit-scrollbar { width: 7px; }
+.paper-chat-messages::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
     border-radius: 999px;
-    box-shadow: 0 1px 0 rgba(26, 115, 232, 0.02);
-    transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
-    max-width: 100%;
 }
-.paper-rag-source-pill:hover {
-    background: #eef4ff;
-    border-color: #c9d8f2;
-    transform: translateY(-1px);
+.paper-chat-messages-inner {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+    gap: 10px;
 }
-.paper-rag-source-title {
+.paper-chat-row {
+    display: flex;
+    width: 100%;
+}
+.paper-chat-row-user {
+    justify-content: flex-end;
+}
+.paper-chat-row-assistant {
+    justify-content: flex-start;
+}
+.paper-chat-bubble {
+    max-width: 88%;
+    border-radius: 17px;
+    padding: 10px 13px;
+    line-height: 1.55;
+    font-size: 0.88rem;
+    overflow-wrap: anywhere;
+}
+.paper-chat-bubble p {
+    margin: 0 0 8px;
+}
+.paper-chat-bubble p:last-child {
+    margin-bottom: 0;
+}
+.paper-chat-bubble ul {
+    margin: 8px 0 8px 1.1rem;
+    padding: 0;
+}
+.paper-chat-bubble li {
+    margin: 5px 0;
+    padding-left: 2px;
+}
+.paper-chat-bubble strong {
+    font-weight: 700;
+}
+.paper-chat-row-user .paper-chat-bubble {
+    color: #ffffff;
+    background: #1a73e8;
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 8px 18px rgba(26, 115, 232, 0.18);
+}
+.paper-chat-row-assistant .paper-chat-bubble {
     color: #2f2923;
-    font-size: 0.78rem;
-    font-weight: 600;
-    line-height: 1.25;
-    max-width: 280px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-bottom-left-radius: 6px;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
 }
-.paper-rag-source-chip {
-    flex-shrink: 0;
+.paper-chat-empty {
+    align-self: center;
+    margin: auto;
+    max-width: 92%;
+    color: #7a6d60;
+    background: #ffffff;
+    border: 1px dashed #cfd8e6;
+    border-radius: 16px;
+    padding: 14px;
+    font-size: 0.87rem;
+    line-height: 1.55;
+    text-align: center;
+}
+.paper-chat-typing {
     display: inline-flex;
     align-items: center;
-    background: #edf3ff;
-    color: #1a73e8;
-    border: 1px solid #d3dff5;
+    gap: 5px;
+    min-width: 48px;
+}
+.paper-chat-dot {
+    width: 6px;
+    height: 6px;
     border-radius: 999px;
-    font-size: 0.66rem;
-    font-weight: 700;
-    padding: 3px 8px;
-    white-space: nowrap;
+    background: #9ca3af;
+    animation: paper-chat-pulse 1s infinite ease-in-out;
+}
+.paper-chat-dot:nth-child(2) { animation-delay: 0.15s; }
+.paper-chat-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes paper-chat-pulse {
+    0%, 80%, 100% { opacity: 0.35; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-2px); }
+}
+.st-key-paper_chat_panel div[data-testid="stForm"] {
+    margin: 0;
+    padding: 10px 12px 12px;
+    background: #ffffff;
+    border: 1px solid #d8dee9;
+    border-top: 0;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+}
+.st-key-paper_chat_panel [data-testid="stTextInput"] {
+    margin-bottom: 0;
+}
+.st-key-paper_chat_panel [data-testid="InputInstructions"] {
+    display: none;
+}
+.st-key-paper_chat_panel [data-testid="stTextInput"] input {
+    min-height: 44px;
+    border-radius: 14px;
+    border: 1px solid #d7dde8;
+    background: #f8fafc;
+    color: #1f2937;
+    font-size: 0.9rem;
+}
+.st-key-paper_chat_panel [data-testid="stTextInput"] input:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.12);
+}
+.st-key-paper_chat_panel div.stButton > button {
+    min-height: 44px;
+    border-radius: 14px;
+    padding: 0 0.9rem;
+    box-shadow: none;
 }
 .chunk-tag {
     display: inline-flex;
@@ -254,12 +300,6 @@ div.stButton > button[kind="primary"] {
     font-variant-numeric: tabular-nums;
     font-weight: 700;
 }
-.paper-rag-form {
-    background: #fbfdff;
-    border: 1px solid #dbe7fb;
-    border-radius: 16px;
-    padding: 12px;
-}
 .paper-tab-empty { font-size: 0.92rem; color: #7e7063; padding: 8px 0; }
 .detail-tab-offset { margin-top: 34px; }
 </style>
@@ -286,52 +326,53 @@ def _detail_chat_key(paper_id: str) -> str:
     return f"detail_chat_history::{paper_id}"
 
 
+def _detail_chat_pending_key(paper_id: str) -> str:
+    return f"detail_chat_pending::{paper_id}"
+
+
 _CHUNK_ANNOTATION_RE = re.compile(r"\[Chunk:\s*([^\]]+)\]", re.IGNORECASE)
+_BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
+
+
+def _render_inline_markdown(text: str) -> str:
+    safe = escape(text.strip())
+    safe = _BOLD_RE.sub(r"<strong>\1</strong>", safe)
+    return safe.replace("**", "").replace("*", "")
 
 
 def _render_annotated_text(content: object) -> str:
-    safe = escape(str(content or ""))
+    text = _CHUNK_ANNOTATION_RE.sub("", str(content or ""))
+    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    lines = text.strip().splitlines()
+    html_parts = []
+    in_list = False
 
-    def _replace(match: re.Match[str]) -> str:
-        chunk_id = escape(match.group(1).strip())
-        return (
-            '<span class="chunk-tag">'
-            '<span class="chunk-tag-label">Chunk</span>'
-            '<span class="chunk-tag-sep">:</span>'
-            f'<span class="chunk-tag-id">{chunk_id}</span>'
-            '</span>'
-        )
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            if in_list:
+                html_parts.append("</ul>")
+                in_list = False
+            continue
 
-    return _CHUNK_ANNOTATION_RE.sub(_replace, safe).replace("\n", "<br>")
+        bullet_match = re.match(r"^[*\-]\s+(.*)$", stripped)
+        if bullet_match:
+            if not in_list:
+                html_parts.append("<ul>")
+                in_list = True
+            html_parts.append(f"<li>{_render_inline_markdown(bullet_match.group(1))}</li>")
+            continue
 
+        if in_list:
+            html_parts.append("</ul>")
+            in_list = False
+        html_parts.append(f"<p>{_render_inline_markdown(stripped)}</p>")
 
-def _sources_html(sources: list[dict]) -> str:
-    items = ""
-    for source in sources or []:
-        title = escape(_normalize_text(source.get("title") or "Untitled"))
-        chunk_id = escape(_normalize_text(source.get("chunk_id") or ""))
-        metric_value = source.get("confidence")
-        metric_label = "conf"
-        if metric_value in (None, "", "nan"):
-            metric_value = source.get("score")
-            metric_label = "score"
-        if metric_value in (None, "", "nan"):
-            metric_value = source.get("source_score")
-            metric_label = "score"
+    if in_list:
+        html_parts.append("</ul>")
 
-        row = f'<span class="paper-rag-source-title" title="{title}">{title}</span>'
-        if chunk_id:
-            row += f'<span class="paper-rag-source-chip">{chunk_id}</span>'
-        if metric_value not in (None, "", "nan"):
-            try:
-                metric_text = f"{float(metric_value):.3f}"
-            except (TypeError, ValueError):
-                metric_text = str(metric_value)
-            row += f'<span class="paper-rag-source-chip">{metric_label} {escape(metric_text)}</span>'
-
-        items += f'<div class="paper-rag-source-pill">{row}</div>'
-
-    return f'<div class="paper-rag-sources">{items}</div>' if items else ""
+    return "".join(html_parts)
 
 
 def _init_detail_chat_session(paper_id: str) -> list[dict]:
@@ -340,86 +381,117 @@ def _init_detail_chat_session(paper_id: str) -> list[dict]:
     return st.session_state.detail_chat_history[paper_id]
 
 
-def _render_detail_chat_history(history: list[dict]) -> None:
-    if not history:
-        st.markdown(
-            """
-            <div class="paper-rag-empty">
-                Ask a question about this paper and the assistant will retrieve
-                relevant chunks from the current paper only, then answer with
-                chunk-level grounding.
-            </div>
-            """,
-            unsafe_allow_html=True,
+def _paper_chat_message_html(message: dict) -> str:
+    role = message.get("role", "assistant")
+    role_class = "paper-chat-row-user" if role == "user" else "paper-chat-row-assistant"
+    content = _render_annotated_text(message.get("content", ""))
+    return (
+        f'<div class="paper-chat-row {role_class}">'
+        f'<div class="paper-chat-bubble">{content}</div>'
+        '</div>'
+    )
+
+
+def _paper_chat_typing_html() -> str:
+    return (
+        '<div class="paper-chat-row paper-chat-row-assistant">'
+        '<div class="paper-chat-bubble paper-chat-typing" aria-label="Assistant is typing">'
+        '<span class="paper-chat-dot"></span>'
+        '<span class="paper-chat-dot"></span>'
+        '<span class="paper-chat-dot"></span>'
+        '</div>'
+        '</div>'
+    )
+
+
+def _render_detail_chat_frame(history: list[dict], is_generating: bool = False, unavailable: bool = False) -> None:
+    if unavailable:
+        body_html = (
+            '<div class="paper-chat-empty">'
+            'This paper does not yet support Q&A.'
+            '</div>'
         )
-        return
+    elif history or is_generating:
+        messages = []
+        if is_generating:
+            messages.append(_paper_chat_typing_html())
+        messages.extend(_paper_chat_message_html(message) for message in reversed(history))
+        body_html = "".join(messages)
+    else:
+        body_html = (
+            '<div class="paper-chat-empty">'
+            'Ask a question and the assistant will answer using chunks from this selected paper.'
+            '</div>'
+        )
 
-    for message in history:
-        role = message.get("role", "assistant")
-        content = message.get("content", "")
-        sources = message.get("sources", [])
-
-        bubble_class = "paper-rag-bubble-user" if role == "user" else "paper-rag-bubble-assistant"
-        with st.container():
-            st.markdown(
-                f'<div class="paper-rag-bubble {bubble_class}">{_render_annotated_text(content)}</div>',
-                unsafe_allow_html=True,
-            )
-            if role == "assistant" and sources:
-                st.markdown(_sources_html(sources), unsafe_allow_html=True)
-
-
-def _render_detail_chat_unavailable() -> None:
     st.markdown(
-        """
-        <div class="paper-rag-panel">
-            <div class="paper-rag-header">
-                <div class="paper-rag-kicker">Paper RAG</div>
-                <div class="paper-rag-title">Ask about this paper</div>
-                <div class="paper-rag-subtitle">
-                    This paper does not yet support Q&A.
-                </div>
+        f"""
+        <div class="paper-chat-frame">
+            <div class="paper-chat-header">
+                <div class="paper-chat-title">Paper Chat</div>
+                <div class="paper-chat-description">Ask questions about this selected paper</div>
             </div>
-            <div class="paper-rag-empty">
-                This paper does not yet support Q&A.
+            <div class="paper-chat-messages" aria-live="polite">
+                <div class="paper-chat-messages-inner">
+                    {body_html}
+                </div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+
+def _render_detail_chat_unavailable() -> None:
+    with st.container(key="paper_chat_panel"):
+        _render_detail_chat_frame([], unavailable=True)
 
 
 def _render_detail_chat_panel(paper: dict) -> None:
     paper_id = str(paper.get("paper_id", "")).strip()
     history = _init_detail_chat_session(paper_id)
+    pending_key = _detail_chat_pending_key(paper_id)
+    pending_question = str(st.session_state.get(pending_key, "") or "").strip()
 
-    st.markdown(
-        """
-        <div class="paper-rag-panel">
-            <div class="paper-rag-header">
-                <div class="paper-rag-kicker">Paper RAG</div>
-                <div class="paper-rag-title">Ask about this paper</div>
-                <div class="paper-rag-subtitle">
-                    Retrieval is limited to the current paper's chunks, so answers stay
-                    grounded in the selected paper only.
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    with st.container(key="paper_chat_panel"):
+        _render_detail_chat_frame(history, is_generating=bool(pending_question))
 
-    _render_detail_chat_history(history)
+        with st.form(
+            key=f"detail_rag_form::{paper_id}",
+            clear_on_submit=True,
+            enter_to_submit=False,
+            border=False,
+        ):
+            input_col, send_col = st.columns([5, 1.15], gap="small", vertical_alignment="bottom")
+            with input_col:
+                question = st.text_input(
+                    "Ask this paper",
+                    placeholder="Ask about methods, results, limitations...",
+                    label_visibility="collapsed",
+                    disabled=bool(pending_question),
+                )
+            with send_col:
+                submitted = st.form_submit_button(
+                    "Send",
+                    type="primary",
+                    width="stretch",
+                    disabled=bool(pending_question),
+                )
 
-
-    with st.form(key=f"detail_rag_form::{paper_id}", clear_on_submit=True):
-        question = st.text_area(
-            "Ask this paper",
-            placeholder="For example: What is the main method? How do they evaluate it? What are the limitations?",
-            height=100,
-            label_visibility="collapsed",
+    if pending_question:
+        result = run_detail_rag(paper, pending_question)
+        answer = result.get("answer", "")
+        history.append(
+            {
+                "role": "assistant",
+                "content": answer,
+                "sources": result.get("sources", []),
+                "confidence": result.get("confidence", 0.0),
+                "execution_path": result.get("execution_path", []),
+            }
         )
-        submitted = st.form_submit_button("Ask paper")
+        del st.session_state[pending_key]
+        st.rerun()
 
     if not submitted:
         return
@@ -430,19 +502,7 @@ def _render_detail_chat_panel(paper: dict) -> None:
         return
 
     history.append({"role": "user", "content": question})
-    with st.spinner("Retrieving from this paper..."):
-        result = run_detail_rag(paper, question)
-
-    answer = result.get("answer", "")
-    history.append(
-        {
-            "role": "assistant",
-            "content": answer,
-            "sources": result.get("sources", []),
-            "confidence": result.get("confidence", 0.0),
-            "execution_path": result.get("execution_path", []),
-        }
-    )
+    st.session_state[pending_key] = question
     st.rerun()
 
 

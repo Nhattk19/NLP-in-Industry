@@ -4,6 +4,7 @@ import re
 from copy import deepcopy
 from datetime import datetime, timezone
 from html import escape
+from urllib.parse import quote
 
 import streamlit as st
 
@@ -127,35 +128,6 @@ section[data-testid="stSidebar"] [data-baseweb="input"] {
     letter-spacing: 0.02em;
 }
 
-.chat-sidebar-brandrow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin: 4px 4px 20px;
-}
-.chat-sidebar-brand {
-    color: #050505;
-    font-size: 1.05rem;
-    font-weight: 700;
-    line-height: 1;
-}
-.chat-sidebar-toggle {
-    width: 22px;
-    height: 22px;
-    border: 1px solid #9a9a9a;
-    border-radius: 6px;
-    position: relative;
-    opacity: 0.9;
-}
-.chat-sidebar-toggle::after {
-    content: "";
-    position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: 8px;
-    border-left: 1px solid #9a9a9a;
-}
 .chat-sidebar-divider {
     height: 1px;
     background: #eeeeee;
@@ -225,45 +197,83 @@ div[data-testid="stChatMessage"] {
     padding: 4px 0 !important;
 }
 
-div[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
-    flex-direction: row-reverse !important;
+.chat-message-row {
+    display: flex;
+    width: 100%;
+    margin: 8px 0;
 }
-div[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) .stMarkdown {
-    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
-    color: #ffffff !important;
-    border-radius: 18px 4px 18px 18px;
-    padding: 12px 16px !important;
-    box-shadow: 0 6px 18px rgba(26,115,232,0.18);
-    max-width: 72%;
-    margin-left: auto;
+.chat-message-row-user {
+    justify-content: flex-end;
 }
-div[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) .stMarkdown p {
-    color: #ffffff !important;
-    margin: 0;
+.chat-message-row-assistant {
+    justify-content: flex-start;
 }
-
-div[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) .stMarkdown {
-    background: #ffffff;
-    border: 1px solid #dbe7fb;
-    border-radius: 4px 18px 18px 18px;
-    padding: 14px 18px !important;
-    box-shadow: 0 8px 22px rgba(26,115,232,0.05);
+.chat-message-stack {
     max-width: 80%;
-    line-height: 1.65;
+}
+.chat-message-row-user .chat-message-stack {
+    max-width: 72%;
+}
+.chat-message-bubble {
+    border-radius: 17px;
+    padding: 10px 13px;
+    line-height: 1.55;
+    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+}
+.chat-message-bubble p {
+    margin: 0 0 8px;
+}
+.chat-message-bubble p:last-child {
+    margin-bottom: 0;
+}
+.chat-message-bubble ul {
+    margin: 8px 0 8px 1.1rem;
+    padding: 0;
+}
+.chat-message-bubble li {
+    margin: 5px 0;
+    padding-left: 2px;
+}
+.chat-message-bubble strong {
+    font-weight: 700;
+}
+.chat-message-row-user .chat-message-bubble {
+    color: #ffffff;
+    background: #1a73e8;
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 8px 18px rgba(26, 115, 232, 0.18);
+}
+.chat-message-row-assistant .chat-message-bubble {
+    color: #2f2923;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-bottom-left-radius: 6px;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
 }
 .answer-text {
     white-space: pre-wrap;
     word-break: break-word;
 }
 
-div[data-testid="chatAvatarIcon-user"] {
-    background: linear-gradient(135deg, #1a73e8, #1557b0) !important;
-    border: none !important;
+.chat-typing {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 48px;
 }
-div[data-testid="chatAvatarIcon-assistant"] {
-    background: #eef5ff !important;
-    border: 1px solid #d0defb !important;
-    color: #1a73e8 !important;
+.chat-typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #9ca3af;
+    animation: chat-typing-pulse 1s infinite ease-in-out;
+}
+.chat-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.chat-typing-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes chat-typing-pulse {
+    0%, 80%, 100% { opacity: 0.35; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-2px); }
 }
 
 .sources-block {
@@ -281,48 +291,39 @@ div[data-testid="chatAvatarIcon-assistant"] {
 }
 .sources-list {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+    align-items: stretch;
 }
-.source-pill {
+.source-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
+    min-height: 34px;
+    padding: 7px 10px;
     background: #f6f8fc;
     border: 1px solid #dbe5f2;
-    border-radius: 999px;
+    border-radius: 10px;
     box-shadow: 0 1px 0 rgba(26, 115, 232, 0.02);
     transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
     max-width: 100%;
+    color: #2f2923 !important;
+    text-decoration: none !important;
 }
-.source-pill:hover {
+.source-row:hover {
     background: #eef4ff;
     border-color: #c9d8f2;
     transform: translateY(-1px);
 }
 .source-title {
+    display: block;
     color: #2f2923;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 600;
-    line-height: 1.25;
-    max-width: 280px;
+    line-height: 1.35;
+    min-width: 0;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.source-chip-sim {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    background: #edf3ff;
-    color: #1a73e8;
-    border: 1px solid #d3dff5;
-    border-radius: 999px;
-    font-size: 0.66rem;
-    font-weight: 700;
-    padding: 3px 8px;
     white-space: nowrap;
 }
 .chunk-tag {
@@ -441,22 +442,48 @@ def _init_chat_session() -> dict | None:
 
 
 _CHUNK_ANNOTATION_RE = re.compile(r"\[Chunk:\s*([^\]]+)\]", re.IGNORECASE)
+_BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
+
+
+def _render_inline_markdown(text: str) -> str:
+    safe = escape(text.strip())
+    safe = _BOLD_RE.sub(r"<strong>\1</strong>", safe)
+    return safe.replace("**", "").replace("*", "")
 
 
 def _render_annotated_text(content: object) -> str:
-    safe = escape(str(content or ""))
+    text = _CHUNK_ANNOTATION_RE.sub("", str(content or ""))
+    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    lines = text.strip().splitlines()
+    html_parts = []
+    in_list = False
 
-    def _replace(match: re.Match[str]) -> str:
-        chunk_id = escape(match.group(1).strip())
-        return (
-            '<span class="chunk-tag">'
-            '<span class="chunk-tag-label">Chunk</span>'
-            '<span class="chunk-tag-sep">:</span>'
-            f'<span class="chunk-tag-id">{chunk_id}</span>'
-            "</span>"
-        )
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            if in_list:
+                html_parts.append("</ul>")
+                in_list = False
+            continue
 
-    return _CHUNK_ANNOTATION_RE.sub(_replace, safe).replace("\n", "<br>")
+        bullet_match = re.match(r"^[*\-]\s+(.*)$", stripped)
+        if bullet_match:
+            if not in_list:
+                html_parts.append("<ul>")
+                in_list = True
+            html_parts.append(f"<li>{_render_inline_markdown(bullet_match.group(1))}</li>")
+            continue
+
+        if in_list:
+            html_parts.append("</ul>")
+            in_list = False
+        html_parts.append(f"<p>{_render_inline_markdown(stripped)}</p>")
+
+    if in_list:
+        html_parts.append("</ul>")
+
+    return "".join(html_parts)
 
 
 def _sources_html(sources) -> str:
@@ -464,32 +491,47 @@ def _sources_html(sources) -> str:
 
     for source in sources or []:
         title = escape(" ".join(str(source.get("title") or "Untitled").split()))
-        chunk_id = escape(" ".join(str(source.get("chunk_id") or "").split()))
-        metric_value = source.get("confidence")
-        metric_label = "conf"
-        if metric_value in (None, "", "nan"):
-            metric_value = source.get("score")
-            metric_label = "score"
-        if metric_value in (None, "", "nan"):
-            metric_value = source.get("source_score")
-            metric_label = "score"
-
+        detail_key = str(source.get("paper_id") or source.get("title") or "").strip()
         row = f'<span class="source-title" title="{title}">{title}</span>'
-        if chunk_id:
-            row += f'<span class="source-chip-sim">{chunk_id}</span>'
-        if metric_value not in (None, "", "nan"):
-            try:
-                metric_text = f"{float(metric_value):.3f}"
-            except (TypeError, ValueError):
-                metric_text = str(metric_value)
-            row += f'<span class="source-chip-sim">{metric_label} {escape(metric_text)}</span>'
-
-        items += f'<div class="source-pill">{row}</div>'
+        if detail_key:
+            href = f"?detail={quote(detail_key, safe='')}"
+            items += f'<a class="source-row" href="{href}" target="_self">{row}</a>'
+        else:
+            items += f'<div class="source-row">{row}</div>'
 
     return (
         '<div class="sources-block">'
         '<div class="sources-label">Sources retrieved</div>'
         f'<div class="sources-list">{items}</div>'
+        "</div>"
+    )
+
+
+def _chat_message_html(role: str, content: object, sources: list | None = None) -> str:
+    role = "user" if str(role).strip() == "user" else "assistant"
+    row_class = "chat-message-row-user" if role == "user" else "chat-message-row-assistant"
+    body = escape(str(content or "")).replace("\n", "<br>") if role == "user" else _render_annotated_text(content)
+    sources_html = _sources_html(sources) if role == "assistant" and sources else ""
+    return (
+        f'<div class="chat-message-row {row_class}">'
+        '<div class="chat-message-stack">'
+        f'<div class="chat-message-bubble">{body}</div>'
+        f"{sources_html}"
+        "</div>"
+        "</div>"
+    )
+
+
+def _chat_typing_html() -> str:
+    return (
+        '<div class="chat-message-row chat-message-row-assistant">'
+        '<div class="chat-message-stack">'
+        '<div class="chat-message-bubble chat-typing" aria-label="Assistant is typing">'
+        '<span class="chat-typing-dot"></span>'
+        '<span class="chat-typing-dot"></span>'
+        '<span class="chat-typing-dot"></span>'
+        "</div>"
+        "</div>"
         "</div>"
     )
 
@@ -531,20 +573,14 @@ def _render_empty_state() -> None:
 
 def _render_chat_history() -> None:
     for message in st.session_state.chat_history:
-        role = message["role"]
-        content = message["content"]
-        sources = message.get("sources", [])
-
-        with st.chat_message(role):
-            if role == "assistant":
-                st.markdown(
-                    f'<div class="answer-text">{_render_annotated_text(content)}</div>',
-                    unsafe_allow_html=True,
-                )
-            else:
-                st.markdown(content)
-            if role == "assistant" and sources:
-                st.markdown(_sources_html(sources), unsafe_allow_html=True)
+        st.markdown(
+            _chat_message_html(
+                str(message.get("role", "assistant")),
+                message.get("content", ""),
+                message.get("sources", []),
+            ),
+            unsafe_allow_html=True,
+        )
 
 
 def _is_chat_pending(session: dict | None) -> bool:
@@ -552,9 +588,7 @@ def _is_chat_pending(session: dict | None) -> bool:
 
 
 def _render_pending_response() -> None:
-    with st.chat_message("assistant"):
-        with st.spinner("Running agent RAG..."):
-            st.caption("Answer is still being generated. You can switch chats and come back.")
+    st.markdown(_chat_typing_html(), unsafe_allow_html=True)
 
 
 def _build_chat_preview(session: dict) -> str:
@@ -614,30 +648,14 @@ def _create_new_chat() -> None:
 
 def _render_sidebar(active_session: dict | None) -> None:
     store = load_chat_store()
-    st.sidebar.markdown(
-        """
-        <div class="chat-sidebar-brandrow">
-            <div class="chat-sidebar-brand">ChatGPT</div>
-            <div class="chat-sidebar-toggle" aria-hidden="true"></div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
     if st.sidebar.button("New chat", use_container_width=True):
         _create_new_chat()
 
-    search_text = st.sidebar.text_input(
-        "Search chats",
-        key="chat_sidebar_search",
-        placeholder="Search chats",
-        label_visibility="collapsed",
-    ).strip()
-
     st.sidebar.markdown('<div class="chat-sidebar-divider"></div>', unsafe_allow_html=True)
     st.sidebar.markdown('<div class="chat-sidebar-heading">Recents</div>', unsafe_allow_html=True)
 
-    sessions = _build_sidebar_sessions(store.get("sessions", []), search_text)
+    sessions = _build_sidebar_sessions(store.get("sessions", []), "")
     if not sessions:
         st.sidebar.markdown(
             '<div class="chat-sidebar-preview">No matching chats.</div>',
@@ -677,6 +695,7 @@ def _assistant_message(answer: str, result: dict) -> dict:
         "success": result.get("success", True),
         "error": result.get("error", ""),
         "query": result.get("query", ""),
+        "standalone_question": result.get("standalone_question", ""),
         "intent": result.get("intent", "unclear"),
         "execution_time_ms": result.get("execution_time_ms", 0),
         "external_search_triggered": result.get("external_search_triggered", False),
@@ -819,33 +838,44 @@ def render_chat_page() -> None:
 
     question = user_input.strip()
     submitted_chat_id, _ = _submit_user_message(question)
+    submitted_store = load_chat_store()
+    submitted_session = get_chat_session(submitted_store, submitted_chat_id)
+    submitted_messages = list(submitted_session.get("messages", [])) if submitted_session else []
+    previous_messages = list(submitted_messages)
+    if previous_messages:
+        last_message = previous_messages[-1]
+        if (
+            str(last_message.get("role", "")).strip() == "user"
+            and str(last_message.get("content", "")).strip() == question
+        ):
+            previous_messages = previous_messages[:-1]
 
-    with st.chat_message("user"):
-        st.markdown(question)
+    st.markdown(_chat_message_html("user", question), unsafe_allow_html=True)
 
-    with st.chat_message("assistant"):
-        print(
-            "[CHAT_UI] run_agent_rag start "
-            f"chat_id={submitted_chat_id} question={question[:80]!r}",
-            flush=True,
-        )
-        with st.spinner("Running agent RAG..."):
-            result = run_agent_rag(question)
-            answer = result.get("answer", "")
-            _append_assistant_response(submitted_chat_id, answer, result)
-            print(
-                "[CHAT_UI] run_agent_rag done_and_saved "
-                f"chat_id={submitted_chat_id} success={result.get('success', True)} "
-                f"elapsed_ms={result.get('execution_time_ms', 0)}",
-                flush=True,
-            )
+    assistant_placeholder = st.empty()
+    assistant_placeholder.markdown(_chat_typing_html(), unsafe_allow_html=True)
+    print(
+        "[CHAT_UI] run_agent_rag start "
+        f"chat_id={submitted_chat_id} question={question[:80]!r}",
+        flush=True,
+    )
+    result = run_agent_rag(
+        question,
+        chat_history=previous_messages,
+        chat_id=submitted_chat_id,
+    )
+    answer = result.get("answer", "")
+    _append_assistant_response(submitted_chat_id, answer, result)
+    print(
+        "[CHAT_UI] run_agent_rag done_and_saved "
+        f"chat_id={submitted_chat_id} success={result.get('success', True)} "
+        f"elapsed_ms={result.get('execution_time_ms', 0)}",
+        flush=True,
+    )
 
-        st.markdown(
-            f'<div class="answer-text">{_render_annotated_text(answer)}</div>',
-            unsafe_allow_html=True,
-        )
-        sources = result.get("sources", [])
-        if sources:
-            st.markdown(_sources_html(sources), unsafe_allow_html=True)
-        if result.get("error") and not result.get("success", True):
-            st.caption(f"Agent error: {result['error']}")
+    assistant_placeholder.markdown(
+        _chat_message_html("assistant", answer, result.get("sources", [])),
+        unsafe_allow_html=True,
+    )
+    if result.get("error") and not result.get("success", True):
+        st.caption(f"Agent error: {result['error']}")

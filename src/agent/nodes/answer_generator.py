@@ -123,6 +123,26 @@ Continue now:"""
             return current_answer.rstrip() + "\n" + continuation.lstrip()
 
         return current_answer
+
+    def _format_chat_history(self, chat_history: list[dict]) -> str:
+        """Format recent chat turns for the generation prompt."""
+        rows = []
+        for message in chat_history or []:
+            role = str(message.get("role", "")).strip().lower()
+            if role not in {"user", "assistant"}:
+                continue
+
+            content = " ".join(str(message.get("content", "")).split()).strip()
+            if not content:
+                continue
+
+            if len(content) > 900:
+                content = content[:897].rstrip() + "..."
+
+            label = "User" if role == "user" else "Assistant"
+            rows.append(f"{label}: {content}")
+
+        return "\n".join(rows)
     
     def __call__(self, state: dict) -> dict:
         """Generate answer"""
@@ -131,8 +151,9 @@ Continue now:"""
         intent = state.get("intent", "unclear")
         if intent == "ood" or intent == IntentType.OOD:
             print("\n[ANSWER_GENERATOR] Generating OOD response...")
+            original_question = state.get("original_question") or state.get("query", "")
             ood_prompt = f"""The user asked a question outside of the NLP/ML/DL/AI paper domain.
-User query: "{state.get('query', '')}"
+User query: "{original_question}"
 
 Provide a helpful but brief response, explaining that you specialize in NLP/ML/DL/AI papers.
 Keep it under 200 tokens."""
@@ -160,15 +181,27 @@ Keep it under 200 tokens."""
         
         print("\n[ANSWER_GENERATOR] Generating RAG answer...")
         
+        original_question = state.get("original_question") or state.get("query", "")
+        standalone_question = state.get("standalone_question") or state.get("query", "")
+        chat_history_text = self._format_chat_history(state.get("chat_history", []))
+        chat_history_section = (
+            f"\n# Recent Chat History\n{chat_history_text}\n"
+            if chat_history_text
+            else ""
+        )
+
         rag_prompt = f"""{self.system_prompt}
 
 # Retrieved Chunk Context
 {context_text}
+{chat_history_section}
+# Standalone Retrieval Question
+{standalone_question}
 
-# User Question
-{state.get('query', '')}
+# Original User Question
+{original_question}
 
-Answer the question using ONLY the retrieved context.
+Answer the original user question using ONLY the retrieved context. Use the standalone retrieval question only to understand what the follow-up refers to.
 
 Requirements:
 - Start with a direct answer

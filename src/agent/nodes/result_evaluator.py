@@ -58,16 +58,21 @@ class ResultEvaluator:
             chunk_id = citation.get("chunk_id") or citation.get("paper_id")
             if chunk_id:
                 citation_ids.append(chunk_id)
+        original_question = state.get("original_question") or state.get("query", "")
+        standalone_question = state.get("standalone_question") or state.get("query", "")
+
         eval_prompt = f"""Evaluate this Q&A pair on a scale of 0-10:
 
-**Query:** {state.get('query', '')}
+**Original User Question:** {original_question}
+
+**Standalone Retrieval Question:** {standalone_question}
 
 **Answer:** {initial_answer}
 
 **Cited Chunks/Papers:** {citation_ids}
 
 **Scoring Criteria:**
-- Relevance (40%): Does answer directly address query?
+- Relevance (40%): Does answer directly address the original user question?
 - Grounding (30%): Are claims properly cited at chunk level?
 - Completeness (20%): Does answer feel complete?
 - Freshness (10%): If SOTA, are papers recent?

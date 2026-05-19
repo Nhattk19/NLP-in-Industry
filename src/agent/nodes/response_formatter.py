@@ -89,7 +89,8 @@ class ResponseFormatter:
         
         return {
             "success": True,
-            "query": state.get("query", ""),
+            "query": state.get("original_question") or state.get("query", ""),
+            "standalone_question": state.get("standalone_question") or state.get("query", ""),
             "intent": state.get("intent", "unclear"),
             "answer": state.get("final_answer", ""),
             "sources": state.get("final_sources", []),

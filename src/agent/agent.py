@@ -225,17 +225,30 @@ class PaperRAGAgent:
         print(f"  [INFO] Score {score:.0f}/10 < 7, attempting another external search...")
         return "retry"
     
-    def run(self, query: str, session_id: str = "") -> dict:
+    def run(
+        self,
+        query: str,
+        session_id: str = "",
+        chat_history: list[dict] | None = None,
+        original_question: str = "",
+    ) -> dict:
         """Run the agent on a query"""
         
         print(f"\n{'='*80}")
         print(f"Query: {query}")
+        if original_question and original_question.strip() != query.strip():
+            print(f"Original question: {original_question}")
         print(f"{'='*80}")
         
         start_time = time.time()
         
         # Create initial state
-        initial_state = create_initial_state(query, session_id)
+        initial_state = create_initial_state(
+            query,
+            session_id=session_id,
+            chat_history=chat_history,
+            original_question=original_question,
+        )
         
         # Execute graph
         try:
