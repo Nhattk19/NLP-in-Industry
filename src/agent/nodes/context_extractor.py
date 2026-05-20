@@ -125,7 +125,7 @@ Below are the most relevant chunks from our database:
 ---
 Use ONLY the information from the above chunks to answer the user's question.
 If information is not in the chunks, say "I couldn't find information about X in the chunks."
-Always cite which chunk(s) your answer comes from using the Chunk ID.
+Always cite which chunk(s) your answer comes from using the numbered reference labels like [1], [2].
 """
         
         state["context_documents"] = context_documents

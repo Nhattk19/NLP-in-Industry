@@ -40,10 +40,31 @@ class ResponseFormatter:
         # Set final answer
         state["final_answer"] = state.get("initial_answer", "")
         
-        # Prepare final sources
+        cited_ref_numbers = []
+        for citation in state.get("answer_citations", []):
+            ref_number = citation.get("ref_number")
+            if isinstance(ref_number, int) and ref_number not in cited_ref_numbers:
+                cited_ref_numbers.append(ref_number)
+
+        # Prepare final references. Prefer cited sources so the displayed
+        # REFERENCES block matches the in-text numbers.
+        context_documents = state.get("context_documents", [])
+        if cited_ref_numbers:
+            docs_with_refs = [
+                (ref_number, context_documents[ref_number - 1])
+                for ref_number in cited_ref_numbers
+                if 1 <= ref_number <= len(context_documents)
+            ]
+        else:
+            docs_with_refs = [
+                (int(doc.get("rank") or index), doc)
+                for index, doc in enumerate(context_documents, 1)
+            ]
+
         final_sources = []
-        for doc in state.get("context_documents", []):
+        for ref_number, doc in docs_with_refs:
             final_sources.append({
+                "ref_number": ref_number,
                 "paper_id": doc.get("paper_id"),
                 "chunk_id": doc.get("chunk_id"),
                 "title": doc.get("title"),

@@ -55,9 +55,10 @@ class ResultEvaluator:
         answer_citations = state.get("answer_citations", [])
         citation_ids = []
         for citation in answer_citations:
+            ref_number = citation.get("ref_number")
             chunk_id = citation.get("chunk_id") or citation.get("paper_id")
             if chunk_id:
-                citation_ids.append(chunk_id)
+                citation_ids.append(f"[{ref_number}] {chunk_id}" if ref_number else chunk_id)
         original_question = state.get("original_question") or state.get("query", "")
         standalone_question = state.get("standalone_question") or state.get("query", "")
 
@@ -69,11 +70,11 @@ class ResultEvaluator:
 
 **Answer:** {initial_answer}
 
-**Cited Chunks/Papers:** {citation_ids}
+**Cited References:** {citation_ids}
 
 **Scoring Criteria:**
 - Relevance (40%): Does answer directly address the original user question?
-- Grounding (30%): Are claims properly cited at chunk level?
+- Grounding (30%): Are claims properly cited with numbered references?
 - Completeness (20%): Does answer feel complete?
 - Freshness (10%): If SOTA, are papers recent?
 - Only request external search if the answer is materially insufficient or grounding is weak.

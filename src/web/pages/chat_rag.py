@@ -283,48 +283,56 @@ div[data-testid="stChatMessage"] {
 }
 .sources-label {
     font-size: 0.68rem;
-    font-weight: 600;
+    font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #9b9eb8;
+    color: #2f2923;
     margin-bottom: 8px;
 }
 .sources-list {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 4px;
     align-items: stretch;
 }
 .source-row {
-    display: flex;
-    align-items: center;
-    min-height: 34px;
-    padding: 7px 10px;
-    background: #f6f8fc;
-    border: 1px solid #dbe5f2;
-    border-radius: 10px;
-    box-shadow: 0 1px 0 rgba(26, 115, 232, 0.02);
-    transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 5px;
+    align-items: baseline;
+    min-height: 20px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    transition: color 0.18s ease;
     max-width: 100%;
     color: #2f2923 !important;
     text-decoration: none !important;
 }
 .source-row:hover {
-    background: #eef4ff;
-    border-color: #c9d8f2;
-    transform: translateY(-1px);
+    color: #1a73e8 !important;
+}
+.source-row:hover .source-title,
+.source-row:hover .source-index {
+    color: #1a73e8;
+}
+.source-index {
+    color: #5f6b86;
+    font-size: 0.76rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
 }
 .source-title {
     display: block;
     color: #2f2923;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.76rem;
+    font-weight: 500;
     line-height: 1.35;
     min-width: 0;
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
 .chunk-tag {
     display: inline-flex;
@@ -451,8 +459,20 @@ def _render_inline_markdown(text: str) -> str:
     return safe.replace("**", "").replace("*", "")
 
 
-def _render_annotated_text(content: object) -> str:
-    text = _CHUNK_ANNOTATION_RE.sub("", str(content or ""))
+def _render_annotated_text(content: object, sources: list | None = None) -> str:
+    chunk_ref_map = {}
+    for index, source in enumerate(sources or [], 1):
+        chunk_id = str(source.get("chunk_id") or "").strip()
+        if not chunk_id:
+            continue
+        ref_number = source.get("ref_number") or index
+        chunk_ref_map[chunk_id] = f"[{ref_number}]"
+
+    def _replace_chunk_annotation(match: re.Match) -> str:
+        chunk_id = match.group(1).strip()
+        return chunk_ref_map.get(chunk_id, "")
+
+    text = _CHUNK_ANNOTATION_RE.sub(_replace_chunk_annotation, str(content or ""))
     text = re.sub(r"\s+([,.;:!?])", r"\1", text)
     text = re.sub(r"[ \t]{2,}", " ", text)
     lines = text.strip().splitlines()
@@ -489,19 +509,26 @@ def _render_annotated_text(content: object) -> str:
 def _sources_html(sources) -> str:
     items = ""
 
-    for source in sources or []:
+    for index, source in enumerate(sources or [], 1):
         title = escape(" ".join(str(source.get("title") or "Untitled").split()))
         detail_key = str(source.get("paper_id") or source.get("title") or "").strip()
-        row = f'<span class="source-title" title="{title}">{title}</span>'
+        ref_number = escape(str(source.get("ref_number") or index))
+        row = (
+            f'<span class="source-index">[{ref_number}]</span>'
+            f'<span class="source-title" title="{title}">{title}</span>'
+        )
         if detail_key:
             href = f"?detail={quote(detail_key, safe='')}"
             items += f'<a class="source-row" href="{href}" target="_self">{row}</a>'
         else:
             items += f'<div class="source-row">{row}</div>'
 
+    if not items:
+        return ""
+
     return (
         '<div class="sources-block">'
-        '<div class="sources-label">Sources retrieved</div>'
+        '<div class="sources-label">REFERENCES</div>'
         f'<div class="sources-list">{items}</div>'
         "</div>"
     )
@@ -510,13 +537,16 @@ def _sources_html(sources) -> str:
 def _chat_message_html(role: str, content: object, sources: list | None = None) -> str:
     role = "user" if str(role).strip() == "user" else "assistant"
     row_class = "chat-message-row-user" if role == "user" else "chat-message-row-assistant"
-    body = escape(str(content or "")).replace("\n", "<br>") if role == "user" else _render_annotated_text(content)
     sources_html = _sources_html(sources) if role == "assistant" and sources else ""
+    body = (
+        escape(str(content or "")).replace("\n", "<br>")
+        if role == "user"
+        else _render_annotated_text(content, sources)
+    )
     return (
         f'<div class="chat-message-row {row_class}">'
         '<div class="chat-message-stack">'
-        f'<div class="chat-message-bubble">{body}</div>'
-        f"{sources_html}"
+        f'<div class="chat-message-bubble">{body}{sources_html}</div>'
         "</div>"
         "</div>"
     )

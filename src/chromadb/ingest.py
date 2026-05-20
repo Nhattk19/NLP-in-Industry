@@ -73,7 +73,7 @@ def build_metadata(record):
     ref_titles = []
     ref_ids = []
 
-    for r in references[:20]:  # ⚠️ limit để tránh quá nặng
+    for r in references:
         if r.get("title"):
             ref_titles.append(r["title"])
         if r.get("id"):
@@ -83,7 +83,7 @@ def build_metadata(record):
     cita_titles = []
     cita_ids = []
 
-    for c in citations[:20]:  # ⚠️ limit
+    for c in citations:
         if c.get("title"):
             cita_titles.append(c["title"])
         if c.get("id"):

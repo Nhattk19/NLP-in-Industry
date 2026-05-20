@@ -37,8 +37,8 @@ You answer questions about NLP/ML/DL/AI research papers.
 INSTRUCTIONS:
 1. Answer the question directly first, in simple language a beginner can follow
 2. Ground your answer only in the provided papers
-3. Use citations only in the exact form [Chunk: arxiv:1810.04805_chunk_0000]
-4. Never use numbered citations like [1], [2], [3] or paper citations like [Paper: ...]
+3. Cite claims with the numbered reference labels from the retrieved context, exactly like [1], [2], [3]
+4. Never use chunk citations like [Chunk: ...] or paper citations like [Paper: ...]
 5. Prefer concise paraphrasing; use short quotes only when they add real value
 6. If the papers do not cover the topic, say so clearly
 7. Stay factual and avoid adding claims that are not supported by the chunks
@@ -53,7 +53,7 @@ STYLE:
 - Use structured bullets only when they help readability
 - Give concrete examples from the papers when helpful
 - Avoid filler, repetition, and academic-sounding padding
-- Prefer chunk-level citations over paper-level citations
+- Prefer citations near the sentence they support
 For explanation questions, follow this order when useful:
 1. Give a simple definition
 2. Explain how it works
@@ -67,6 +67,7 @@ OUTPUT REQUIREMENTS:
 - Do not repeat the same instruction in multiple sentences
 - Never truncate or leave incomplete sentences
 - Use bullets or numbering only when they improve clarity
+- Do not add a References section; the UI will render it from the retrieved sources
 """
 
     def _extract_finish_reason(self, response) -> str:
@@ -108,8 +109,8 @@ OUTPUT REQUIREMENTS:
 Continue the answer from the exact point where it stopped.
 Do not repeat the earlier text.
 Keep the same grounding and citation style.
-Use only exact citations in the form [Chunk: CHUNK_ID].
-Do not use numbered citations like [1], [2], [3] or [Paper: ...].
+Use only numbered citations like [1], [2], [3].
+Do not use chunk citations like [Chunk: ...] or paper citations like [Paper: ...].
 End with complete sentences.
 
 Previous answer:
@@ -205,13 +206,14 @@ Answer the original user question using ONLY the retrieved context. Use the stan
 
 Requirements:
 - Start with a direct answer
-- Support important claims with chunk citations
-- Use only exact citations in the form [Chunk: CHUNK_ID]
-- Never use [1], [2], [3] or [Paper: ...]
-- Use one chunk ID per citation; do not combine multiple chunk IDs inside one bracket
+- Support important claims with numbered citations
+- Use only citations in the form [1], [2], [3], matching the retrieved chunk number
+- Never use [Chunk: ...] or [Paper: ...]
+- You may cite multiple sources together as [1][2] when one sentence is supported by both
 - Keep the response clear, concise, and complete
 - If information is missing, explicitly say so
 - Avoid repeating the same fact in different words
+- Do not add a References section
 
 Now generate the answer:"""
         
@@ -230,29 +232,37 @@ Now generate the answer:"""
                 except Exception as continuation_error:
                     print(f"! [ANSWER_GENERATOR] Continuation failed: {continuation_error}")
 
-            answer = self._sanitize_answer(answer)
+            context_docs = state.get("context_documents", [])
+            answer = self._sanitize_answer(answer, context_docs)
             state["initial_answer"] = answer
             
-            # Extract citations from answer (simple parsing)
-            citations = re.findall(r'\[Chunk:\s*([^\]]+)\]', state["initial_answer"])
+            # Extract numbered citations from answer.
+            citations = re.findall(r'\[(\d+)\]', state["initial_answer"])
+            context_documents = context_docs
             parsed_citations = []
+            seen_ref_numbers = set()
             for citation in citations:
-                for citation_id in re.split(r"\s*[,;]\s*", citation.strip()):
-                    citation_id = citation_id.strip().rstrip(".,")
-                    if not citation_id:
-                        continue
-                    parsed_citations.append(
-                        {
-                            "paper_id": citation_id.split("_chunk_", 1)[0]
-                            if "_chunk_" in citation_id
-                            else citation_id,
-                            "chunk_id": citation_id,
-                        }
-                    )
+                try:
+                    ref_number = int(citation)
+                except ValueError:
+                    continue
+                if ref_number in seen_ref_numbers:
+                    continue
+                if ref_number < 1 or ref_number > len(context_documents):
+                    continue
+
+                doc = context_documents[ref_number - 1]
+                seen_ref_numbers.add(ref_number)
+                parsed_citations.append(
+                    {
+                        "ref_number": ref_number,
+                        "paper_id": doc.get("paper_id"),
+                        "chunk_id": doc.get("chunk_id"),
+                    }
+                )
             state["answer_citations"] = parsed_citations
             
             # Simple confidence scoring
-            context_docs = state.get("context_documents", [])
             state["answer_confidence"] = min(0.95, 0.7 + len(context_docs) * 0.05)
 
             print("\n[ANSWER_GENERATOR] Raw answer:")
@@ -269,11 +279,21 @@ Now generate the answer:"""
         state["execution_path"] = state.get("execution_path", []) + ["answer_generator"]
         return state
 
-    def _sanitize_answer(self, answer: str) -> str:
+    def _sanitize_answer(self, answer: str, context_documents: list[dict] | None = None) -> str:
         """Remove citation formats that are not allowed in this pipeline."""
         if not answer:
             return answer
 
-        sanitized = re.sub(r"\[(\d+)\]", "", answer)
+        chunk_ref_map = {}
+        for index, doc in enumerate(context_documents or [], 1):
+            chunk_id = str(doc.get("chunk_id") or "").strip()
+            if chunk_id:
+                chunk_ref_map[chunk_id] = f"[{index}]"
+
+        def _replace_chunk(match: re.Match) -> str:
+            chunk_id = match.group(1).strip()
+            return chunk_ref_map.get(chunk_id, "")
+
+        sanitized = re.sub(r"\[Chunk:\s*([^\]]+)\]", _replace_chunk, answer)
         sanitized = re.sub(r"\[Paper:[^\]]+\]", "", sanitized)
         return sanitized
