@@ -217,68 +217,64 @@ python src/chroma_fulltext/ingest.py
 
 ### 5.3. Run With Docker
 
-Docker is the easiest way to give this project to someone else to run. The
-image includes the Streamlit app and any local processed data / ChromaDB stores
-that exist in this folder at build time.
+Docker is the easiest way to run the deployed Streamlit application. A
+ready-built image is available on Docker Hub:
 
-Prepare the environment file:
+```text
+nguyennhattk19/nlp-kg-search:latest
+```
+
+Pull the image:
 
 ```bash
-cp .env.docker.example .env
+docker pull nguyennhattk19/nlp-kg-search:latest
 ```
 
-On Windows PowerShell:
-
-```powershell
-Copy-Item .env.docker.example .env
-```
-
-Then open `.env` and set:
-
-```env
-GOOGLE_API_KEY=your_google_gemini_api_key_here
-```
-
-Build and run:
+Run the container:
 
 ```bash
-docker compose up --build
+docker run -p 8501:8501 -e GOOGLE_API_KEY="your_google_api_key" nguyennhattk19/nlp-kg-search:latest
 ```
 
-Open:
+Replace `your_google_api_key` with your real Google Gemini API key.
+
+After the container starts, open:
 
 ```text
 http://localhost:8501
 ```
 
-To stop the app:
+To stop the app, press `Ctrl+C` in the terminal running the container.
+
+If you want to run the container in the background:
 
 ```bash
-docker compose down
+docker run -d --name nlp-kg-search -p 8501:8501 -e GOOGLE_API_KEY="your_google_api_key" nguyennhattk19/nlp-kg-search:latest
 ```
 
-If you want to send a ready-built image to another machine:
+Then stop and remove it with:
+
+```bash
+docker stop nlp-kg-search
+docker rm nlp-kg-search
+```
+
+If you want to build the image locally instead of pulling it from Docker Hub:
 
 ```bash
 docker compose build
-docker save -o nlp-kg-search.tar nlp-kg-search:latest
 ```
 
-On the other machine:
+Then run the local image:
 
 ```bash
-docker load -i nlp-kg-search.tar
-docker run --env-file .env -p 8501:8501 nlp-kg-search:latest
+docker run -p 8501:8501 -e GOOGLE_API_KEY="your_google_api_key" nlp-kg-search:latest
 ```
 
 Notes:
 
 - Do not bake `.env`, `Google_api_key.txt`, or API tokens into the image.
-- Build the image from a folder that already contains
-  `data/data_processed/final_cleaned_data.jsonl`,
-  `src/chromadb/chroma_store_abstracts/`, and
-  `data/chroma_store_fulltext/` if you want the app to run without rebuilding
-  indexes.
+- Pass secrets at runtime with `-e GOOGLE_API_KEY="..."`.
 - The image can be large because the ChromaDB stores are a few GB.
 
 ## 6. Description Of Deployment Method

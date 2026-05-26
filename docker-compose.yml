@@ -1,0 +1,15 @@
+services:
+  nlp-kg-search:
+    build:
+      context: .
+    image: nlp-kg-search:latest
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      ANONYMIZED_TELEMETRY: "False"
+      CHROMA_TELEMETRY_IMPL: "none"
+      STREAMLIT_SERVER_PORT: "8501"
+      STREAMLIT_PORT: "8501"
+    restart: unless-stopped
