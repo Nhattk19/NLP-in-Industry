@@ -15,7 +15,7 @@ load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-
+EXTERNAL_SEARCH_CONFIDENCE_THRESHOLD = 0.7
 
 class ResultEvaluator:
     """Evaluate answer quality"""
@@ -53,19 +53,32 @@ class ResultEvaluator:
         
         # Build evaluation prompt
         answer_citations = state.get("answer_citations", [])
+        citation_ids = []
+        for citation in answer_citations:
+            ref_number = citation.get("ref_number")
+            chunk_id = citation.get("chunk_id") or citation.get("paper_id")
+            if chunk_id:
+                citation_ids.append(f"[{ref_number}] {chunk_id}" if ref_number else chunk_id)
+        original_question = state.get("original_question") or state.get("query", "")
+        standalone_question = state.get("standalone_question") or state.get("query", "")
+
         eval_prompt = f"""Evaluate this Q&A pair on a scale of 0-10:
 
-**Query:** {state.get('query', '')}
+**Original User Question:** {original_question}
+
+**Standalone Retrieval Question:** {standalone_question}
 
 **Answer:** {initial_answer}
 
-**Cited Papers:** {[c.get('paper_id') for c in answer_citations]}
+**Cited References:** {citation_ids}
 
 **Scoring Criteria:**
-- Relevance (40%): Does answer directly address query?
-- Grounding (30%): Are claims properly cited?
+- Relevance (40%): Does answer directly address the original user question?
+- Grounding (30%): Are claims properly cited with numbered references?
 - Completeness (20%): Does answer feel complete?
 - Freshness (10%): If SOTA, are papers recent?
+- Only request external search if the answer is materially insufficient or grounding is weak.
+- Do NOT request external search just because the answer could be a little richer or more detailed.
 
 Respond in JSON:
 {{
@@ -95,8 +108,15 @@ Respond in JSON:
             state["is_answer_good"] = score >= 7
             state["answer_confidence"] = score / 10.0
             state["feedback_reason"] = evaluation.get("reason", "")
-            state["needs_external_search"] = evaluation.get("needs_external_search", score < 6)
-            
+            model_requests_external = bool(evaluation.get("needs_external_search", False))
+            state["needs_external_search"] = (
+                score < 6
+                and state["answer_confidence"] < EXTERNAL_SEARCH_CONFIDENCE_THRESHOLD
+            )
+
+            if model_requests_external and not state["needs_external_search"]:
+                print("! External search request overridden: answer score is already good enough")
+
             print(f"[OK] Evaluation Score: {score}/10 - {evaluation.get('reason')}")
             
             if state["needs_external_search"]:
@@ -109,7 +129,10 @@ Respond in JSON:
             answer_len = len(initial_answer)
             state["is_answer_good"] = answer_len > 200
             state["answer_confidence"] = min(0.6, answer_len / 500)
-            state["needs_external_search"] = answer_len < 300
+            state["needs_external_search"] = (
+                answer_len < 300
+                and state["answer_confidence"] < EXTERNAL_SEARCH_CONFIDENCE_THRESHOLD
+            )
             state["feedback_reason"] = "Evaluation unavailable, checking answer length"
             print(f"! Falling back: answer_good={state['is_answer_good']}, trigger_external={state['needs_external_search']}")
             
@@ -118,7 +141,10 @@ Respond in JSON:
             answer_len = len(initial_answer)
             state["is_answer_good"] = answer_len > 200
             state["answer_confidence"] = 0.6
-            state["needs_external_search"] = answer_len < 300
+            state["needs_external_search"] = (
+                answer_len < 300
+                and state["answer_confidence"] < EXTERNAL_SEARCH_CONFIDENCE_THRESHOLD
+            )
             state["feedback_reason"] = f"Evaluation failed: {str(e)}"
         
         state["execution_path"] = state.get("execution_path", []) + ["result_evaluator"]

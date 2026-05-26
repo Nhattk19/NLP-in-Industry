@@ -5,16 +5,27 @@ Search for new papers from arXiv API when database is outdated or answer is insu
 """
 
 import os
+import json
 import re
 import time
 import requests
 from typing import List, Dict, Optional
 from contextlib import redirect_stdout, redirect_stderr
 from dotenv import load_dotenv
-from urllib.parse import urljoin, quote
+from urllib.parse import quote
 import xml.etree.ElementTree as ET
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from src.agent.states import IntentType
+from src.chroma_fulltext.ingest import (
+    BATCH_SIZE,
+    EMBED_BATCH_SIZE,
+    MIN_FULLTEXT_WORDS,
+    build_metadata,
+    load_embedding_model,
+    split_document,
+    COLLECTION_NAME as FULLTEXT_COLLECTION_NAME,
+)
 
 # Try to import pdfplumber for PDF parsing
 try:
@@ -26,7 +37,13 @@ except ImportError:
 
 load_dotenv()
 
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+QUERY_REWRITE_MODEL = os.getenv("QUERY_REWRITE_MODEL", GEMINI_MODEL)
+ENABLE_QUERY_REWRITE = os.getenv("ENABLE_QUERY_REWRITE", "true").lower() == "true"
 EXTERNAL_SEARCH_NUM_RESULTS = int(os.getenv("EXTERNAL_SEARCH_NUM_RESULTS", 5))
+EXTERNAL_SEARCH_CANDIDATE_RESULTS = 10
+EXTERNAL_SEARCH_MAX_PAGES = 1
 PDF_PARSER_ENABLED = os.getenv("PDF_PARSER_ENABLED", "true").lower() == "true"
 REQUEST_TIMEOUT = 15
 
@@ -36,11 +53,30 @@ class ExternalSearcher:
     
     def __init__(self):
         """Initialize external searcher"""
-        self.max_results = EXTERNAL_SEARCH_NUM_RESULTS
+        self.max_results = min(max(EXTERNAL_SEARCH_NUM_RESULTS, 1), 5)
+        self.candidate_results = EXTERNAL_SEARCH_CANDIDATE_RESULTS
+        self.max_pages = EXTERNAL_SEARCH_MAX_PAGES
         self.enable_pdf_parsing = PDF_PARSER_ENABLED
         self.arxiv_base_url = "http://export.arxiv.org/api/query?"
-        
-        print(f"[INIT] ExternalSearcher initialized (arXiv API + PDF parsing: {self.enable_pdf_parsing})")
+        self.query_rewriter = None
+
+        if ENABLE_QUERY_REWRITE and GOOGLE_API_KEY:
+            try:
+                self.query_rewriter = ChatGoogleGenerativeAI(
+                    model=QUERY_REWRITE_MODEL,
+                    api_key=GOOGLE_API_KEY,
+                    temperature=0,
+                    max_output_tokens=256,
+                )
+            except Exception as e:
+                print(f"! [INIT] Query rewriter unavailable: {e}")
+
+        print(
+            f"[INIT] ExternalSearcher initialized "
+            f"(target={self.max_results}, candidates={self.candidate_results}, "
+            f"pages={self.max_pages}, PDF parsing: {self.enable_pdf_parsing}, "
+            f"query rewrite: {bool(self.query_rewriter)})"
+        )
     
     def __call__(self, state: dict) -> dict:
         """Execute external search with arXiv API"""
@@ -49,25 +85,53 @@ class ExternalSearcher:
         
         # Build search query
         search_query = self._build_search_query(state)
+        if state.get("rewritten_search_query"):
+            print(f"   Rewritten: {state['rewritten_search_query']}")
         print(f"   Query: {search_query}")
         
         try:
-            # Search arXiv (no rate limiting issues)
-            results = self._search_arxiv(search_query)
+            # Search only the first 10 candidates. We do not fetch beyond this
+            # window even if fewer than 5 papers survive DB filtering.
+            results = self._collect_candidate_papers(search_query)
             
             print(f"   Found {len(results)} results")
+
+            # Avoid downloading/parsing PDFs for papers already in ChromaDB.
+            # arXiv gives stable paper_id values in the metadata response, so
+            # we can cheaply dedupe before the expensive crawl step.
+            results, skipped_existing = self._remove_existing_db_papers(
+                results,
+                max_selected=self.candidate_results,
+            )
+            if skipped_existing:
+                print(f"   [DB] Skipped {len(skipped_existing)} papers already present in DB before PDF parsing")
+            print(f"   [DB] {len(results)} new candidate papers remain before PDF parsing")
+
+            # Tighten the result set before PDF parsing so unrelated arXiv
+            # papers do not waste crawl/parse time.
+            results = self._filter_and_rank_external_results(results, state.get("query", ""))
             
             # Parse PDFs if enabled
             if self.enable_pdf_parsing and results:
                 results = self._enrich_with_pdf_content(results)
+
+            # Re-rank after PDF enrichment, then run a final duplicate check
+            # just before ingestion in case another job inserted the paper.
+            results = self._filter_and_rank_external_results(results, state.get("query", ""))
+            results, skipped_after_parse = self._remove_existing_db_papers(results)
+            if skipped_after_parse:
+                print(f"   [DB] Skipped {len(skipped_after_parse)} papers already present in DB after PDF parsing")
+            print(f"   [DB] {len(results)} new papers remain after DB filtering")
             
             # Ingest results into ChromaDB for future searches
             if results:
-                self._ingest_to_chromadb(results, state.get("query", ""))
+                state["external_papers"] = self._ingest_to_chromadb(results, state.get("query", ""))
+                state["bm25_index_updated"] = bool(state["external_papers"])
+            else:
+                state["external_papers"] = []
+                state["bm25_index_updated"] = False
             
-            state["external_papers"] = results
-            
-            print(f"[OK] External search completed: {len(results)} papers")
+            print(f"[OK] External search completed: {len(state['external_papers'])} chunks")
             
         except Exception as e:
             print(f"X External search failed: {str(e)}")
@@ -75,18 +139,84 @@ class ExternalSearcher:
         
         state["execution_path"] = state.get("execution_path", []) + ["external_searcher"]
         return state
+
+    def _get_chromadb_collection(self):
+        """Open the shared ChromaDB collection used by the agent."""
+        import chromadb
+        from chromadb.config import Settings
+
+        os.environ["CHROMA_TELEMETRY_IMPL"] = "none"
+        os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
+        CHROMA_PATH = "./data/chroma_store_fulltext"
+        settings = Settings(anonymized_telemetry=False)
+        client = chromadb.PersistentClient(path=CHROMA_PATH, settings=settings)
+        return client.get_or_create_collection(
+            name=FULLTEXT_COLLECTION_NAME,
+            metadata={"hnsw:space": "cosine"},
+        )
+
+    def _collect_candidate_papers(self, search_query: str) -> List[Dict]:
+        """Fetch the first 10 arXiv candidates before DB filtering."""
+        collected = []
+        seen_ids = set()
+
+        page_results = self._search_arxiv(
+            search_query,
+            start=0,
+            max_results=self.candidate_results,
+        )
+
+        if not page_results:
+            return collected
+
+        for paper in page_results:
+            paper_id = paper.get("paper_id") or paper.get("url") or paper.get("title") or ""
+            if not paper_id or paper_id in seen_ids:
+                continue
+            seen_ids.add(paper_id)
+            collected.append(paper)
+
+            if len(collected) >= self.candidate_results:
+                break
+
+        return collected
     
     def _build_search_query(self, state: dict) -> str:
         """Build search query for arXiv - improved with iteration-aware refinement"""
         
-        query_parts = []
-        
         # Get base query
         refined_query = state.get("refined_query", "")
-        if refined_query:
-            query_parts.append(refined_query)
-        else:
-            query_parts.append(state.get("query", ""))
+        base_query = refined_query or state.get("query", "")
+        base_query = base_query.strip()
+
+        rewritten_query = self._rewrite_search_query(base_query)
+        if rewritten_query:
+            state["rewritten_search_query"] = rewritten_query
+            search_query = rewritten_query
+
+            iteration = state.get("external_search_iteration", 0)
+            if iteration == 1 and "cat:" not in self._normalize_query_text(search_query):
+                search_query = f"{search_query} AND (cat:cs.CL OR cat:cs.LG)"
+            elif iteration >= 2 and "cat:" not in self._normalize_query_text(search_query):
+                search_query = f"{search_query} AND (cat:cs.CL OR cat:cs.LG OR cat:cs.AI OR cat:cs.NE)"
+
+            return search_query[:200]
+
+        normalized_base_query = self._normalize_query_text(base_query)
+        if self._is_sota_ner_query(normalized_base_query):
+            # Special-case SOTA-for-NER queries: search directly for the task
+            # name and transformer-style NER terms, instead of generic SOTA
+            # wording that matches many unrelated recent papers.
+            return (
+                '(ti:"named entity recognition" OR abs:"named entity recognition" OR '
+                'all:"named entity recognition" OR all:NER) AND '
+                '(cat:cs.CL OR cat:cs.LG OR cat:cs.AI) AND '
+                '(all:transformer OR all:BERT OR all:RoBERTa OR all:ELECTRA OR '
+                'all:"sequence tagging" OR all:"token classification")'
+            )
+
+        query_parts = [base_query]
         
         # Iteration-based query refinement
         iteration = state.get("external_search_iteration", 0)
@@ -96,18 +226,143 @@ class ExternalSearcher:
         elif iteration >= 2:
             # Second attempt: broaden to include AI/NE
             query_parts.append("AND (cat:cs.CL OR cat:cs.LG OR cat:cs.AI OR cat:cs.NE)")
-        
+
         search_query = " ".join(query_parts)
         return search_query[:200]  # Limit length
+
+    def _rewrite_search_query(self, query: str) -> str:
+        """Rewrite a natural-language question into a compact academic search query."""
+        if not self.query_rewriter:
+            return ""
+
+        query = (query or "").strip()
+        if not query:
+            return ""
+
+        prompt = f"""Convert the user question into a concise arXiv search query for academic papers.
+
+Return valid JSON only, with this schema:
+{{
+  "search_query": "string",
+  "reason": "string"
+}}
+
+Rules:
+- Keep the query short and targeted.
+- Prefer academic terms, paper titles, techniques, and task names.
+- If the question is broad, rewrite it to the most likely research topic.
+- If the question is about Transformer, include terms like "Transformer architecture", self-attention, encoder-decoder.
+- If the question is about SOTA for NER, include named entity recognition / NER and strong model families such as BERT, RoBERTa, or DeBERTa.
+- Add category filters only when they help, such as cat:cs.CL, cat:cs.LG, or cat:cs.AI.
+- Do not answer the question. Only output the search query.
+
+User question:
+{query}"""
+
+        try:
+            response = self.query_rewriter.invoke(prompt)
+            raw_text = getattr(response, "content", "") or ""
+            raw_text = raw_text.strip()
+
+            if "```json" in raw_text:
+                raw_text = raw_text.split("```json", 1)[1].split("```", 1)[0].strip()
+            elif "```" in raw_text:
+                raw_text = raw_text.split("```", 1)[1].split("```", 1)[0].strip()
+
+            payload = json.loads(raw_text)
+            search_query = str(payload.get("search_query", "")).strip()
+            return search_query[:200]
+        except Exception as e:
+            print(f"   [REWRITE] Query rewrite failed: {e}")
+            return ""
+
+    def _normalize_query_text(self, text: str) -> str:
+        """Lowercase and collapse whitespace for lightweight query checks."""
+        return re.sub(r"\s+", " ", text or "").strip().lower()
+
+    def _is_sota_ner_query(self, query: str) -> bool:
+        """Detect SOTA queries that are actually asking about NER."""
+        return (
+            ("sota" in query or "state of the art" in query)
+            and ("ner" in query or "named entity recognition" in query)
+        )
+
+    def _score_external_result(self, paper: Dict, query: str) -> float:
+        """Score how well an external paper matches the query."""
+        text = self._normalize_query_text(
+            " ".join(
+                [
+                    str(paper.get("title", "")),
+                    str(paper.get("snippet", "")),
+                    str(paper.get("pdf_content", "")),
+                ]
+            )
+        )
+
+        score = 0.0
+        if self._is_sota_ner_query(query):
+            if "named entity recognition" in text:
+                score += 5.0
+            if "ner" in f" {text} ":
+                score += 2.5
+            for term in ("transformer", "bert", "roberta", "electra", "token classification", "sequence tagging"):
+                if term in text:
+                    score += 0.75
+            if any(term in text for term in ("named entity", "entity recognition", "sequence labeling")):
+                score += 1.5
+        else:
+            query_tokens = [tok for tok in re.findall(r"\w+", query) if len(tok) > 2]
+            for token in query_tokens:
+                if token in text:
+                    score += 0.5
+
+        return score
+
+    def _filter_and_rank_external_results(self, results: List[Dict], query: str) -> List[Dict]:
+        """Keep only the most relevant external results before ingestion."""
+        if not results:
+            return results
+
+        normalized_query = self._normalize_query_text(query)
+        scored_results = []
+
+        for item in results:
+            score = self._score_external_result(item, normalized_query)
+            item = item.copy()
+            item["external_match_score"] = round(score, 4)
+            scored_results.append((score, item))
+
+        # For SOTA/NER queries, drop obviously unrelated papers.
+        if self._is_sota_ner_query(normalized_query):
+            scored_results = [pair for pair in scored_results if pair[0] >= 2.5]
+
+        scored_results.sort(key=lambda pair: (pair[0], pair[1].get("rank", 0)), reverse=True)
+
+        refined = []
+        for idx, (score, item) in enumerate(scored_results[: self.max_results], start=1):
+            item["rank"] = idx
+            item["relevance_score"] = float(score if score > 0 else 1.0 / idx)
+            refined.append(item)
+
+        return refined or results[: self.max_results]
     
-    def _search_arxiv(self, query: str) -> List[Dict]:
+    def _search_arxiv(self, query: str, start: int = 0, max_results: int = None) -> List[Dict]:
         """Search using arXiv API"""
         
         results = []
+        request_results = max_results or self.max_results
         
         try:
+            normalized_query = self._normalize_query_text(query)
+            targeted_search = self._is_sota_ner_query(normalized_query)
+            sort_by = "relevance" if targeted_search else "submittedDate"
+            
             # arXiv API query
-            search_url = self.arxiv_base_url + f"search_query={quote(query)}&start=0&max_results={self.max_results}&sortBy=submittedDate&sortOrder=descending"
+            search_url = (
+                self.arxiv_base_url
+                + f"search_query={quote(query)}&start={start}&max_results={request_results}"
+                + f"&sortBy={sort_by}&sortOrder=descending"
+            )
             
             response = requests.get(search_url, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
@@ -136,7 +391,7 @@ class ExternalSearcher:
             if not entries:
                 entries = root.findall('entry')
             
-            for idx, entry in enumerate(entries[:self.max_results]):
+            for idx, entry in enumerate(entries[:request_results]):
                 try:
                     # Extract fields with proper namespace handling
                     title_elem = entry.find('atom:title', ns)
@@ -211,7 +466,56 @@ class ExternalSearcher:
             print(f"  [ERR] Unexpected error: {str(e)[:80]}")
         
         return results
-    
+
+    def _paper_exists_in_db(self, collection, paper_id: str) -> bool:
+        """Check whether a paper already exists in the shared ChromaDB collection."""
+        if not paper_id:
+            return False
+
+        try:
+            existing = collection.get(
+                where={"paper_id": paper_id},
+                limit=1,
+                include=["metadatas"],
+            )
+            return bool(existing.get("ids"))
+        except Exception as e:
+            print(f"      [WARN] DB existence check failed for {paper_id}: {str(e)}")
+            return False
+
+    def _remove_existing_db_papers(self, results: List[Dict], max_selected: Optional[int] = None):
+        """Keep new papers that are not already stored in ChromaDB."""
+        if not results:
+            return [], []
+
+        max_selected = max_selected or self.max_results
+
+        try:
+            collection = self._get_chromadb_collection()
+        except Exception as e:
+            print(f"   [WARN] Could not open ChromaDB for duplicate check: {str(e)}")
+            return results[:max_selected], []
+
+        selected = []
+        skipped = []
+        seen_paper_ids = set()
+
+        for paper in results:
+            paper_id = paper.get("paper_id", "") or ""
+            if not paper_id or paper_id in seen_paper_ids:
+                continue
+            seen_paper_ids.add(paper_id)
+
+            if self._paper_exists_in_db(collection, paper_id):
+                skipped.append(paper)
+                continue
+
+            selected.append(paper)
+            if len(selected) >= max_selected:
+                break
+
+        return selected, skipped
+
     def _is_paper_url(self, url: str) -> bool:
         """Check if URL is a paper link"""
         
@@ -370,78 +674,139 @@ class ExternalSearcher:
         except Exception as e:
             print(f"      PDF parsing error: {str(e)}")
             return None
+
+    def _prepare_external_chunk_records(self, results: List[Dict], query: str):
+        """Convert external paper results into chunk-level records."""
+        chunk_records = []
+        documents = []
+        metadatas = []
+        ids = []
+        successful_papers = 0
+
+        for idx, paper in enumerate(results):
+            try:
+                paper_id = paper.get("paper_id") or f"external_{query}_{idx}"
+                title = paper.get("title", "")
+                snippet = paper.get("snippet", "")
+                pdf_content = paper.get("pdf_content", "")
+                source_url = paper.get("url", "")
+                source = paper.get("source", "external")
+                rank = int(paper.get("rank", idx + 1))
+                score = float(paper.get("relevance_score", 1.0 / (idx + 1)))
+                pdf_url = paper.get("pdf_url", "")
+
+                full_text_parts = [
+                    part.strip()
+                    for part in [title, snippet, pdf_content]
+                    if part and part.strip()
+                ]
+                full_text = "\n\n".join(full_text_parts).strip()
+
+                if not full_text:
+                    continue
+
+                if len(full_text.split()) < MIN_FULLTEXT_WORDS:
+                    continue
+
+                chunks = split_document(full_text)
+                if not chunks:
+                    continue
+
+                successful_papers += 1
+
+                for chunk_index, chunk in enumerate(chunks):
+                    chunk_id = f"{paper_id}_chunk_{chunk_index:04d}"
+                    chunk_text = chunk.text or ""
+                    metadata_record = {
+                        "paper_id": paper_id,
+                        "title": title,
+                        "source_url": source_url,
+                    }
+
+                    documents.append(chunk_text)
+                    metadatas.append(build_metadata(metadata_record, chunk_index, chunk))
+                    ids.append(chunk_id)
+
+                    chunk_records.append({
+                        "paper_id": paper_id,
+                        "chunk_id": chunk_id,
+                        "title": title,
+                        "source_url": source_url,
+                        "source": source,
+                        "pdf_url": pdf_url,
+                        "rank": rank,
+                        "score": score,
+                        "similarity": score,
+                        "chunk_index": int(chunk_index),
+                        "chunk_start": int(chunk.start),
+                        "chunk_length": int(len(chunk_text)),
+                        "chunk_text": chunk_text,
+                        "text": chunk_text,
+                        "snippet": chunk_text[:200],
+                        "paper_snippet": snippet[:300],
+                    })
+
+            except Exception as e:
+                print(f"      [WARN] Failed to prepare paper {idx}: {str(e)}")
+
+        return chunk_records, documents, metadatas, ids, successful_papers
+
+    def _upsert_chunk_batch(self, collection, model, documents, metadatas, ids):
+        """Encode a batch of chunks and upsert them into ChromaDB."""
+        embeddings = model.encode(
+            documents,
+            batch_size=EMBED_BATCH_SIZE,
+            show_progress_bar=False,
+        ).tolist()
+
+        with open(os.devnull, "w") as devnull:
+            with redirect_stdout(devnull), redirect_stderr(devnull):
+                collection.upsert(
+                    ids=ids,
+                    documents=documents,
+                    embeddings=embeddings,
+                    metadatas=metadatas,
+                )
     
     def _ingest_to_chromadb(self, results: List[Dict], query: str):
-        """Ingest external papers into ChromaDB"""
+        """Ingest external papers into ChromaDB and return chunk-level records"""
         
+        chunk_records, documents, metadatas, ids, successful_papers = self._prepare_external_chunk_records(results, query)
+        if not chunk_records:
+            print("   [WARN] No chunk-level content prepared for ingestion")
+            return []
+
         try:
-            import chromadb
-            from chromadb.utils import embedding_functions
-            
-            # Disable ChromaDB telemetry to avoid telemetry errors
-            os.environ["CHROMA_TELEMETRY_IMPL"] = "none"
-            
             # Connect to ChromaDB
-            CHROMA_PATH = "./data/chroma_store_fulltext"
-            client = chromadb.PersistentClient(path=CHROMA_PATH)
-            emb_fn = embedding_functions.DefaultEmbeddingFunction()
-            
-            collection = client.get_or_create_collection(
-                name="papers",
-                metadata={"hnsw:space": "cosine"},
-                embedding_function=emb_fn
+            collection = self._get_chromadb_collection()
+            model = load_embedding_model()
+
+            print(
+                f"\n   [INGEST] Adding {successful_papers} external papers to ChromaDB as "
+                f"{len(chunk_records)} external chunks..."
             )
-            
-            print(f"\n   [INGEST] Adding {len(results)} external papers to ChromaDB...")
-            
-            successful = 0
-            for idx, paper in enumerate(results):
-                try:
-                    # Generate unique ID for external papers
-                    paper_id = paper.get("paper_id") or f"external_{query}_{idx}"
-                    
-                    # Build document text
-                    title = paper.get("title", "")
-                    snippet = paper.get("snippet", "")
-                    pdf_content = paper.get("pdf_content", "")
-                    
-                    # Combine all text
-                    doc_text = f"{title}. {snippet}"
-                    if pdf_content:
-                        doc_text += f"\n{pdf_content}"
-                    
-                    if not doc_text.strip():
-                        continue
-                    
-                    # Build metadata
-                    metadata = {
-                        "title": title[:500],
-                        "source": paper.get("source", "external"),
-                        "url": paper.get("url", ""),
-                        "rank": str(paper.get("rank", idx + 1)),
-                        "is_external": "true",
-                        "query_context": query[:100]
-                    }
-                    
-                    # Add to collection (suppress ChromaDB logging)
-                    with redirect_stdout(open(os.devnull, 'w')), redirect_stderr(open(os.devnull, 'w')):
-                        collection.add(
-                            ids=[paper_id],
-                            documents=[doc_text],
-                            metadatas=[metadata]
-                        )
-                    
-                    successful += 1
-                    
-                except Exception as e:
-                    print(f"      [WARN] Failed to ingest paper {idx}: {str(e)}")
-            
-            print(f"   [OK] Successfully ingested {successful}/{len(results)} papers")
-            
+
+            inserted_chunks = 0
+            for batch_start in range(0, len(documents), BATCH_SIZE):
+                batch_end = batch_start + BATCH_SIZE
+                batch_documents = documents[batch_start:batch_end]
+                batch_metadatas = metadatas[batch_start:batch_end]
+                batch_ids = ids[batch_start:batch_end]
+                self._upsert_chunk_batch(collection, model, batch_documents, batch_metadatas, batch_ids)
+                inserted_chunks += len(batch_ids)
+
+            print(
+                f"   [OK] Successfully ingested {successful_papers}/{len(results)} papers "
+                f"as {inserted_chunks} chunks"
+            )
+            return chunk_records
+
         except ImportError:
             print("   [WARN] ChromaDB not available for ingestion")
+            return chunk_records
         except Exception as e:
             print(f"   ⚠️  ChromaDB ingestion error: {str(e)}")
+            return chunk_records
     
 def get_external_searcher() -> ExternalSearcher:
     """Singleton getter for external searcher"""

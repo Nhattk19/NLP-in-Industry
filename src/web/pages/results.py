@@ -232,6 +232,13 @@ def _build_detail_key(row: pd.Series, card_key: str) -> str:
     return card_key
 
 
+def _results_context_params() -> str:
+    query = quote(str(st.session_state.get("search_query", "") or ""), safe="")
+    semantic = "1" if bool(st.session_state.get("enable_semantic", True)) else "0"
+    page = quote(str(st.session_state.get("result_page", 0) or 0), safe="")
+    return f"&q={query}&semantic={semantic}&page={page}" if query else f"&semantic={semantic}&page={page}"
+
+
 def _build_author_chips(authors: object) -> str:
     if isinstance(authors, list):
         names = [author.get("name", "") if isinstance(author, dict) else str(author) for author in authors]
@@ -275,7 +282,7 @@ def render_result_card(row: pd.Series, card_key: str) -> None:
 
     card_html = (
         '<div class="paper-card-wrap">'
-        f'<a class="paper-card-link" href="?detail={detail_key}" target="_self">'
+        f'<a class="paper-card-link" href="?detail={detail_key}{_results_context_params()}" target="_self">'
         '<div class="paper-card">'
         f'<div class="paper-title">{title}</div>'
         f'<div class="paper-authors">{author_chips}</div>'
@@ -381,10 +388,12 @@ def _render_pagination(current_page: int, max_page: int) -> None:
                 if slot == "prev":
                     if st.button("<", key="pg_prev", disabled=(current_page == 0)):
                         st.session_state.result_page = current_page - 1
+                        st.query_params["page"] = str(st.session_state.result_page)
                         st.rerun()
                 elif slot == "next":
                     if st.button(">", key="pg_next", disabled=(current_page >= max_page)):
                         st.session_state.result_page = current_page + 1
+                        st.query_params["page"] = str(st.session_state.result_page)
                         st.rerun()
                 elif slot == "ellipsis":
                     st.markdown('<div class="pg-ellipsis">...</div>', unsafe_allow_html=True)
@@ -392,6 +401,7 @@ def _render_pagination(current_page: int, max_page: int) -> None:
                     st.markdown(f'<div class="pg-active">{slot + 1}</div>', unsafe_allow_html=True)
                 elif st.button(str(slot + 1), key=f"pg_{slot}"):
                     st.session_state.result_page = slot
+                    st.query_params["page"] = str(slot)
                     st.rerun()
         st.markdown("</div></div>", unsafe_allow_html=True)
 
@@ -403,11 +413,26 @@ def _init_results_session() -> None:
     st.session_state.setdefault("_cached_results", None)
     st.session_state.setdefault("_cached_key", "")
 
+    query_param = str(st.query_params.get("q", "") or "").strip()
+    if query_param:
+        st.session_state.search_query = query_param
+
+    semantic_param = str(st.query_params.get("semantic", "") or "").strip().lower()
+    if semantic_param in {"0", "false", "lexical"}:
+        st.session_state.enable_semantic = False
+    elif semantic_param in {"1", "true", "semantic"}:
+        st.session_state.enable_semantic = True
+
+    page_param = str(st.query_params.get("page", "") or "").strip()
+    if page_param.isdigit():
+        st.session_state.result_page = int(page_param)
+
 
 def _render_search_controls() -> None:
     col_home, col_query, col_mode, col_search = st.columns([1, 5, 2, 1])
     with col_home:
         if st.button("Home", use_container_width=True):
+            st.query_params.clear()
             st.session_state.page = "home"
             st.rerun()
     with col_query:
@@ -424,12 +449,18 @@ def _render_search_controls() -> None:
             st.session_state.enable_semantic = is_semantic
             st.session_state.result_page = 0
             st.session_state._cached_key = ""
+            st.query_params["q"] = query_input
+            st.query_params["semantic"] = "1" if is_semantic else "0"
+            st.query_params["page"] = "0"
             st.rerun()
     with col_search:
         if st.button("Search", use_container_width=True):
             st.session_state.search_query = query_input
             st.session_state.result_page = 0
             st.session_state._cached_key = ""
+            st.query_params["q"] = query_input
+            st.query_params["semantic"] = "1" if st.session_state.enable_semantic else "0"
+            st.query_params["page"] = "0"
             st.rerun()
 
 
@@ -486,6 +517,8 @@ def render_results_page(collection, reranker, bm25_engine, bm25_metadata) -> Non
             return
 
         max_page, current_page, start, end = _paginate(total, st.session_state.result_page)
+        if current_page != st.session_state.result_page:
+            st.session_state.result_page = current_page
         mode = "Semantic Search" if is_semantic else "Lexical (BM25)"
         st.markdown(
             f'<div class="result-header">Publications found for <b>"{escape(query)}"</b> · {total} results · {mode}</div>'

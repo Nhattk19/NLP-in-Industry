@@ -14,14 +14,12 @@ class SearchMode(str, Enum):
     SEMANTIC = "semantic"
     LEXICAL = "lexical"
     HYBRID = "hybrid"
-    PAPER_SPECIFIC = "paper_specific"
 
 
 class IntentType(str, Enum):
     """User intent classification"""
     OOD = "ood"  # Out-of-domain
-    GLOBAL = "global"  # Global NLP question
-    SPECIFIC = "specific"  # Specific paper question
+    GLOBAL = "global"  # In-domain NLP/ML/DL/AI question
     UNCLEAR = "unclear"  # Cannot determine
 
 
@@ -31,16 +29,15 @@ class AgentState(TypedDict, total=False):
     # ===== Input =====
     query: str
     session_id: str
+    original_question: str
+    standalone_question: str
+    chat_history: List[dict]
     
     # ===== Intent Classification =====
     intent: str
     intent_confidence: float
     intent_explanation: str
-    paper_id_context: str
-    
-    # ===== Query Refinement =====
     refined_query: str
-    query_type: str
     
     # ===== Search Execution =====
     search_mode: str
@@ -76,17 +73,25 @@ class AgentState(TypedDict, total=False):
     execution_time_ms: int
 
 
-def create_initial_state(query: str, session_id: str = "") -> AgentState:
+def create_initial_state(
+    query: str,
+    session_id: str = "",
+    chat_history: list[dict] | None = None,
+    original_question: str = "",
+) -> AgentState:
     """Create initial state with all required fields"""
+    original_question = (original_question or query or "").strip()
+    standalone_question = (query or original_question or "").strip()
     return {
-        "query": query,
+        "query": standalone_question,
         "session_id": session_id,
+        "original_question": original_question,
+        "standalone_question": standalone_question,
+        "chat_history": chat_history or [],
         "intent": "unclear",
         "intent_confidence": 0.0,
         "intent_explanation": "",
-        "paper_id_context": "",
         "refined_query": "",
-        "query_type": "",
         "search_mode": "hybrid",
         "lexical_results": [],
         "semantic_results": [],

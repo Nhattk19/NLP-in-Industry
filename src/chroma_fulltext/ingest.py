@@ -1,7 +1,11 @@
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
+
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
 
 import chromadb
 import torch
@@ -13,7 +17,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 JSONL_PATH = "data/data_processed/papers_full.jsonl"
-CHROMA_PATH = "./src/chroma_fulltext/chroma_store_fulltext"
+CHROMA_PATH = "./data/chroma_store_fulltext"
 COLLECTION_NAME = "papers_fulltext"
 
 BATCH_SIZE = 128
@@ -245,7 +249,8 @@ def process_batch(collection, model, documents, metadatas, ids, embed_bar):
 
 
 def main():
-    client = chromadb.PersistentClient(path=CHROMA_PATH)
+    from chromadb.config import Settings
+    client = chromadb.PersistentClient(path=CHROMA_PATH, settings=Settings(anonymized_telemetry=False))
     collection = load_collection(client)
     model = load_embedding_model()
 

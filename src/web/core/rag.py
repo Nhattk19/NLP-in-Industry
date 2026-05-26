@@ -1,200 +1,259 @@
+from __future__ import annotations
+
+import os
+import sys
+import json
 from pathlib import Path
 
-import chromadb
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
+
 import streamlit as st
-import torch
-from flashrank import Ranker, RerankRequest
-from openai import OpenAI
-from sentence_transformers import SentenceTransformer
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+# Ensure the repository root is importable so `src.agent` resolves when
+# Streamlit runs the web app from `src/web/app.py`.
+ROOT_DIR = Path(__file__).resolve().parents[3]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from src.agent import get_agent
 
 
-CHROMA_PATH = "./src/chroma_fulltext/chroma_store_fulltext"
-COLLECTION_NAME = "papers_fulltext"
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-RERANKER_MODEL = "ms-marco-MiniLM-L-12-v2"
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-TOP_K = 10
-RETRIEVAL_TOP_K = 30
-SIMILARITY_THRESHOLD = 0.1
-OPENAI_MODEL = "gpt-4.1-nano"
+AGENT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 EMPTY_ANSWER = "I don't know based on the provided documents."
-API_KEY_FILE = Path(__file__).resolve().parent.parent / "pages" / "api_agent.txt"
-
-SYSTEM_PROMPT = (
-    "You are a strict, citation-focused assistant for a private knowledge base.\n"
-    "RULES:\n"
-    "1) Use ONLY the provided context to answer.\n"
-    "2) The context is mostly English, but you must answer in Vietnamese by default unless the user explicitly asks for another language.\n"
-    '3) If the answer is not clearly contained in the context, say: "I don\'t know based on the provided documents."\n'
-    "4) Do NOT use outside knowledge, guessing, or web information.\n"
-    "5) If applicable, cite sources as (source:page) using the metadata.\n"
-    "6) Keep citations and source labels exactly as provided, but write the explanatory text in Vietnamese.\n\n"
-    "Context:\n{context}\n\n"
-    "Question: {question}"
-)
-
-
-def load_api_key() -> str:
-    try:
-        return API_KEY_FILE.read_text(encoding="utf-8").strip()
-    except FileNotFoundError:
-        return ""
+CHAT_HISTORY_MESSAGE_LIMIT = int(os.getenv("CHAT_HISTORY_MESSAGE_LIMIT", "5"))
+CHAT_HISTORY_CHAR_LIMIT = int(os.getenv("CHAT_HISTORY_CHAR_LIMIT", "4500"))
 
 
 @st.cache_resource(show_spinner=False)
-def load_chroma():
-    chroma_path = Path(CHROMA_PATH)
-    if not chroma_path.exists():
-        return None, f"ChromaDB was not found at `{CHROMA_PATH}`."
+def load_agent():
+    """Load the shared LangGraph agent once per Streamlit session."""
+    return get_agent()
 
-    try:
-        client = chromadb.PersistentClient(path=str(chroma_path))
-        collection = client.get_collection(name=COLLECTION_NAME)
-        return collection, None
-    except Exception as exc:
-        return None, str(exc)
+
+@st.cache_resource(show_spinner="Preloading agent RAG...")
+def preload_agent():
+    """Warm the shared agent before the first chat question."""
+    return load_agent()
 
 
 @st.cache_resource(show_spinner=False)
-def load_embedder():
-    cache_root = (
-        Path.home()
-        / ".cache"
-        / "huggingface"
-        / "hub"
-        / "models--sentence-transformers--all-MiniLM-L6-v2"
-        / "snapshots"
+def load_query_rewriter():
+    """Load the lightweight LLM used to rewrite follow-up questions."""
+    return ChatGoogleGenerativeAI(
+        model=AGENT_MODEL,
+        api_key=os.getenv("GOOGLE_API_KEY"),
+        temperature=0.0,
     )
-    snapshot_dirs = sorted(cache_root.glob("*")) if cache_root.exists() else []
-    if snapshot_dirs:
-        return SentenceTransformer(
-            str(snapshot_dirs[-1]),
-            device=DEVICE,
-            local_files_only=True,
-        )
-    return SentenceTransformer(EMBEDDING_MODEL, device=DEVICE)
 
 
-@st.cache_resource(show_spinner=False)
-def load_reranker():
-    return Ranker(model_name=RERANKER_MODEL)
+def _normalize_confidence(value) -> float:
+    try:
+        return round(float(value), 2)
+    except (TypeError, ValueError):
+        return 0.0
 
 
-def init_rag_resources():
-    api_key = load_api_key()
-    collection, chroma_err = load_chroma()
-    if chroma_err:
-        return api_key, collection, chroma_err, None, None
+def _compact_chat_history(chat_history: list[dict] | None) -> list[dict]:
+    """Keep only recent user/assistant messages with bounded content."""
+    if not isinstance(chat_history, list):
+        return []
 
-    embedder = load_embedder()
-    reranker = load_reranker()
-    return api_key, collection, None, embedder, reranker
+    compacted: list[dict] = []
+    remaining_chars = CHAT_HISTORY_CHAR_LIMIT
 
-
-def retrieve_chunks(collection, embedder, query: str, top_k: int = RETRIEVAL_TOP_K):
-    query_embedding = embedder.encode([query]).tolist()
-    # Suppress ChromaDB internal logging
-    import os
-    from contextlib import redirect_stdout, redirect_stderr
-    with redirect_stdout(open(os.devnull, 'w')), redirect_stderr(open(os.devnull, 'w')):
-        results = collection.query(
-            query_embeddings=query_embedding,
-            n_results=top_k,
-            include=["documents", "metadatas", "distances"],
-        )
-
-    docs, metas, dists = [], [], []
-    for doc, meta, dist in zip(
-        results["documents"][0],
-        results["metadatas"][0],
-        results["distances"][0],
-    ):
-        similarity = max(0.0, 1.0 - float(dist))
-        if similarity < SIMILARITY_THRESHOLD:
+    for message in reversed(chat_history):
+        if not isinstance(message, dict):
             continue
-        docs.append(doc)
-        metas.append(meta)
-        dists.append(float(dist))
 
-    return docs, metas, dists
+        role = str(message.get("role", "")).strip().lower()
+        if role not in {"user", "assistant"}:
+            continue
 
+        content = " ".join(str(message.get("content", "")).split()).strip()
+        if not content:
+            continue
 
-def rerank_chunks(
-    query: str,
-    docs: list[str],
-    metas: list[dict],
-    dists: list[float],
-    reranker,
-    top_k: int = TOP_K,
-):
-    if not docs or reranker is None:
-        return docs[:top_k], metas[:top_k], dists[:top_k], []
+        if remaining_chars <= 0:
+            break
 
-    passages = []
-    for index, (doc, meta, dist) in enumerate(zip(docs, metas, dists)):
-        passages.append(
-            {
-                "id": str(index),
-                "text": doc,
-                "meta": meta,
-                "distance": dist,
-            }
-        )
+        if len(content) > remaining_chars:
+            content = content[:remaining_chars].rstrip()
 
-    reranked = reranker.rerank(RerankRequest(query=query, passages=passages))
+        compacted.append({"role": role, "content": content})
+        remaining_chars -= len(content)
 
-    final_docs, final_metas, final_dists, rerank_scores = [], [], [], []
-    for passage in reranked[:top_k]:
-        final_docs.append(passage["text"])
-        final_metas.append(passage["meta"])
-        final_dists.append(float(passage["distance"]))
-        rerank_scores.append(float(passage["score"]))
+        if len(compacted) >= CHAT_HISTORY_MESSAGE_LIMIT:
+            break
 
-    return final_docs, final_metas, final_dists, rerank_scores
+    return list(reversed(compacted))
 
 
-def build_context(docs: list[str], metas: list[dict]) -> str:
-    parts = []
-    for index, (doc, meta) in enumerate(zip(docs, metas), start=1):
-        source = meta.get("source_url") or meta.get("paper_id") or "unknown"
-        title = meta.get("title") or "Untitled"
-        chunk = meta.get("chunk_index", "?")
-        parts.append(
-            f"[{index}] Source: {source} | Title: {title} | Chunk: {chunk}\n{doc}"
-        )
-    return "\n\n---\n\n".join(parts)
+def _format_history_for_rewrite(chat_history: list[dict]) -> str:
+    rows = []
+    for message in chat_history:
+        role = "User" if message.get("role") == "user" else "Assistant"
+        rows.append(f"{role}: {message.get('content', '')}")
+    return "\n".join(rows)
 
 
-def ask_openai(api_key: str, context: str, question: str) -> str:
-    client = OpenAI(api_key=api_key)
-    prompt = SYSTEM_PROMPT.format(context=context, question=question)
-    response = client.chat.completions.create(
-        model=OPENAI_MODEL,
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a helpful assistant that follows instructions exactly.",
-            },
-            {"role": "user", "content": prompt},
-        ],
-    )
-    return response.choices[0].message.content
+def _extract_json_object(text: str) -> dict:
+    text = (text or "").strip()
+    if not text:
+        return {}
 
+    if "```json" in text:
+        text = text.split("```json", 1)[1].split("```", 1)[0].strip()
+    elif "```" in text:
+        text = text.split("```", 1)[1].split("```", 1)[0].strip()
 
-def generate_answer(
-    api_key: str,
-    question: str,
-    docs: list[str],
-    metas: list[dict],
-    dists: list[float],
-    rerank_scores: list[float] | None = None,
-):
-    if not docs:
-        return EMPTY_ANSWER, [], [], []
-
-    context = build_context(docs, metas)
     try:
-        answer = ask_openai(api_key, context, question)
-        return answer, metas, dists, rerank_scores or []
+        return json.loads(text)
+    except json.JSONDecodeError:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            try:
+                return json.loads(text[start : end + 1])
+            except json.JSONDecodeError:
+                return {}
+    return {}
+
+
+def _rewrite_follow_up_question(question: str, chat_history: list[dict]) -> str:
+    """Rewrite a conversational follow-up into a standalone retrieval query."""
+    question = (question or "").strip()
+    if not question or not chat_history:
+        return question
+
+    prompt = f"""You rewrite follow-up questions for an academic NLP/ML/AI paper RAG system.
+
+Given the recent chat history and the latest user question, produce one standalone question for retrieval.
+
+Rules:
+- Do not answer the question.
+- Resolve pronouns and references like it, this, that, they, the method, the paper, its limitations.
+- Preserve the user's intent and technical scope.
+- If the latest question is already standalone, return it unchanged.
+- Keep it concise and search-friendly.
+
+Recent chat history:
+{_format_history_for_rewrite(chat_history)}
+
+Latest user question:
+{question}
+
+Return ONLY valid JSON:
+{{
+  "standalone_question": "string"
+}}"""
+
+    try:
+        response = load_query_rewriter().invoke(prompt)
+        payload = _extract_json_object(getattr(response, "content", ""))
+        rewritten = str(payload.get("standalone_question", "")).strip()
+        if rewritten:
+            return rewritten
     except Exception as exc:
-        return f"API error: {exc}", [], [], []
+        print(f"! [CHAT_RAG] Question rewrite failed: {exc}", flush=True)
+
+    return question
+
+
+def run_agent_rag(
+    question: str,
+    chat_history: list[dict] | None = None,
+    chat_id: str | None = None,
+) -> dict:
+    """Run the web chat through the shared agent pipeline."""
+    question = (question or "").strip()
+    if not question:
+        return {
+            "success": False,
+            "query": "",
+            "intent": "unclear",
+            "answer": EMPTY_ANSWER,
+            "sources": [],
+            "confidence": 0.0,
+            "search_mode_used": "hybrid",
+            "execution_time_ms": 0,
+            "external_search_triggered": False,
+            "used_external_papers": False,
+            "feedback_info": None,
+            "execution_path": [],
+            "error": "Empty question",
+        }
+
+    compact_history = _compact_chat_history(chat_history)
+    standalone_question = _rewrite_follow_up_question(question, compact_history)
+    if standalone_question != question:
+        print(
+            "[CHAT_RAG] rewritten follow-up "
+            f"chat_id={chat_id or ''} original={question[:80]!r} standalone={standalone_question[:120]!r}",
+            flush=True,
+        )
+
+    try:
+        result = load_agent().run(
+            standalone_question,
+            session_id=chat_id or "",
+            chat_history=compact_history,
+            original_question=question,
+        )
+    except Exception as exc:
+        return {
+            "success": False,
+            "query": question,
+            "standalone_question": standalone_question,
+            "intent": "unclear",
+            "answer": f"API error: {exc}",
+            "sources": [],
+            "confidence": 0.0,
+            "search_mode_used": "hybrid",
+            "execution_time_ms": 0,
+            "external_search_triggered": False,
+            "used_external_papers": False,
+            "feedback_info": None,
+            "execution_path": [],
+            "error": str(exc),
+        }
+
+    if not isinstance(result, dict):
+        return {
+            "success": False,
+            "query": question,
+            "standalone_question": standalone_question,
+            "intent": "unclear",
+            "answer": EMPTY_ANSWER,
+            "sources": [],
+            "confidence": 0.0,
+            "search_mode_used": "hybrid",
+            "execution_time_ms": 0,
+            "external_search_triggered": False,
+            "used_external_papers": False,
+            "feedback_info": None,
+            "execution_path": [],
+            "error": "Unexpected agent output",
+        }
+
+    answer = str(result.get("answer") or "").strip() or EMPTY_ANSWER
+    sources = result.get("sources") or []
+
+    return {
+        "success": bool(result.get("success", True)),
+        "query": question,
+        "standalone_question": result.get("standalone_question", standalone_question),
+        "intent": result.get("intent", "unclear"),
+        "answer": answer,
+        "sources": sources,
+        "confidence": _normalize_confidence(result.get("confidence", 0.0)),
+        "search_mode_used": result.get("search_mode_used", "hybrid"),
+        "execution_time_ms": int(result.get("execution_time_ms", 0) or 0),
+        "external_search_triggered": bool(result.get("external_search_triggered", False)),
+        "used_external_papers": bool(result.get("used_external_papers", False)),
+        "feedback_info": result.get("feedback_info"),
+        "execution_path": result.get("execution_path", []),
+        "raw": result,
+        "error": result.get("error", ""),
+    }

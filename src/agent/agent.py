@@ -8,6 +8,7 @@ Works with dict state (no Pydantic conversion)
 import os
 import time
 import json
+from threading import RLock
 from langgraph.graph import StateGraph, END
 
 # Disable ChromaDB telemetry BEFORE any imports
@@ -22,9 +23,11 @@ from src.agent.nodes.result_evaluator import ResultEvaluator
 from src.agent.nodes.external_searcher import ExternalSearcher
 from src.agent.nodes.response_formatter import ResponseFormatter
 
+_EXTERNAL_SEARCH_LOCK = RLock()
+
 
 class PaperRAGAgent:
-    """Complete RAG Agent for NLP Paper Search and Q&A"""
+    """Complete RAG Agent for NLP/ML/DL/AI paper search and Q&A"""
     
     def __init__(self):
         """Initialize agent components"""
@@ -55,7 +58,7 @@ class PaperRAGAgent:
         workflow.add_node("extract_context", self.context_extractor)
         workflow.add_node("generate_answer", self.answer_generator)
         workflow.add_node("evaluate_result", self.result_evaluator)
-        workflow.add_node("external_search", self.external_searcher)
+        workflow.add_node("external_search", self._external_search_locked)
         workflow.add_node("re_search_external", self._re_search_with_external)
         workflow.add_node("re_evaluate_result", self._re_evaluate_after_external)
         workflow.add_node("format_response", self.response_formatter)
@@ -109,12 +112,9 @@ class PaperRAGAgent:
             state["search_mode"] = "hybrid"
             state["execution_path"] = state.get("execution_path", []) + ["select_search_mode"]
             return state
-        
-        if intent == "specific":
-            state["search_mode"] = "paper_specific"
-        else:
-            # GLOBAL intent - use hybrid by default
-            state["search_mode"] = "hybrid"
+
+        # GLOBAL intent - use hybrid by default
+        state["search_mode"] = "hybrid"
         
         print(f"[OK] Search mode selected: {state['search_mode']}")
         state["execution_path"] = state.get("execution_path", []) + ["select_search_mode"]
@@ -134,6 +134,16 @@ class PaperRAGAgent:
             return "external"
         
         return "skip"
+
+    def _external_search_locked(self, state: dict) -> dict:
+        """Run external crawl/ingest serially while allowing normal RAG runs."""
+
+        print("[EXTERNAL_LOCK] Waiting for external search lock if another ingest is running...")
+        with _EXTERNAL_SEARCH_LOCK:
+            print("[EXTERNAL_LOCK] Acquired for external_search")
+            result = self.external_searcher(state)
+            print("[EXTERNAL_LOCK] Released after external_search")
+            return result
     
     def _re_search_with_external(self, state: dict) -> dict:
         """Re-run search and context extraction with newly ingested external papers"""
@@ -145,12 +155,19 @@ class PaperRAGAgent:
             return state
         
         try:
-            # Re-run search on the new data
-            state = self.search_executor(state)
-            print(f"  [OK] Re-search completed with external papers")
-            
-            # Re-extract context
-            state = self.context_extractor(state)
+            print("[EXTERNAL_LOCK] Waiting for external re-search lock...")
+            with _EXTERNAL_SEARCH_LOCK:
+                print("[EXTERNAL_LOCK] Acquired for re_search_external")
+                if state.get("bm25_index_updated"):
+                    self.search_executor.reload_bm25_searcher()
+                
+                # Re-run search on the new data
+                state = self.search_executor(state)
+                print(f"  [OK] Re-search completed with external papers")
+                
+                # Re-extract context
+                state = self.context_extractor(state)
+                print("[EXTERNAL_LOCK] Released after re_search_external retrieval")
             
             # Re-generate answer with new context
             state = self.answer_generator(state)
@@ -208,17 +225,30 @@ class PaperRAGAgent:
         print(f"  [INFO] Score {score:.0f}/10 < 7, attempting another external search...")
         return "retry"
     
-    def run(self, query: str, session_id: str = "") -> dict:
+    def run(
+        self,
+        query: str,
+        session_id: str = "",
+        chat_history: list[dict] | None = None,
+        original_question: str = "",
+    ) -> dict:
         """Run the agent on a query"""
         
         print(f"\n{'='*80}")
         print(f"Query: {query}")
+        if original_question and original_question.strip() != query.strip():
+            print(f"Original question: {original_question}")
         print(f"{'='*80}")
         
         start_time = time.time()
         
         # Create initial state
-        initial_state = create_initial_state(query, session_id)
+        initial_state = create_initial_state(
+            query,
+            session_id=session_id,
+            chat_history=chat_history,
+            original_question=original_question,
+        )
         
         # Execute graph
         try:

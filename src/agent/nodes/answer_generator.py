@@ -5,6 +5,7 @@ Generate answers using Gemini 2.5-Flash with RAG context
 """
 
 import os
+import re
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from src.agent.states import IntentType
@@ -14,7 +15,8 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 LLM_TEMP = float(os.getenv("LLM_TEMPERATURE", "0.2"))
-LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "1000"))
+LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "2000"))
+MIN_COMPLETE_ANSWER_CHARS = int(os.getenv("MIN_COMPLETE_ANSWER_CHARS", "200"))
 
 
 class AnswerGenerator:
@@ -26,37 +28,122 @@ class AnswerGenerator:
             model=GEMINI_MODEL,
             api_key=GOOGLE_API_KEY,
             temperature=LLM_TEMP,
-            max_tokens=LLM_MAX_TOKENS
+            max_output_tokens=LLM_MAX_TOKENS
         )
         
-        self.system_prompt = """You are an expert NLP researcher answering questions about academic papers.
+        self.system_prompt = """You are an expert researcher answering questions about academic papers in NLP/ML/DL/AI.
+You answer questions about NLP/ML/DL/AI research papers.
 
 INSTRUCTIONS:
-1. GROUND YOUR ANSWER in the provided papers
-2. USE CITATIONS: Reference paper IDs like [Paper: arxiv:1810.04805]
-3. BE PRECISE: Quote relevant sections when needed
-4. ACKNOWLEDGE LIMITATIONS: If papers don't cover the topic, say so
-5. MAINTAIN OBJECTIVITY: Present facts from papers, not your interpretation
-6. ALWAYS COMPLETE: Provide full, complete answers - DO NOT cut off mid-sentence
-7. BE THOROUGH: Include details, examples, and context from papers
-8. For LIST QUERIES: Provide structured list with 2-3 sentences per item
+1. Answer the question directly first, in simple language a beginner can follow
+2. Ground your answer only in the provided papers
+3. Cite claims with the numbered reference labels from the retrieved context, exactly like [1], [2], [3]
+4. Never use chunk citations like [Chunk: ...] or paper citations like [Paper: ...]
+5. Prefer concise paraphrasing; use short quotes only when they add real value
+6. If the papers do not cover the topic, say so clearly
+7. Stay factual and avoid adding claims that are not supported by the chunks
+8. Always finish complete sentences and avoid mid-sentence truncation
+9. For list queries, provide a short structured list with 1-2 clear sentences per item
+10. If multiple chunks overlap, synthesize them into one coherent explanation instead of repeating facts
+11. Prioritize correctness and grounding over answer length
 
 STYLE:
-- Clear, comprehensive language
-- Technical accuracy
-- Structured lists/bullets for multiple items
-- Relevant examples from papers
-- Always finish sentences completely
-- Write SUBSTANTIAL answers (800+ chars for list queries)
+- Clear, plain language
+- Explain technical terms briefly the first time you use them
+- Use structured bullets only when they help readability
+- Give concrete examples from the papers when helpful
+- Avoid filler, repetition, and academic-sounding padding
+- Prefer citations near the sentence they support
+For explanation questions, follow this order when useful:
+1. Give a simple definition
+2. Explain how it works
+3. Explain why it matters
+4. Add examples only if they are supported by the chunks
 
 OUTPUT REQUIREMENTS:
-- MINIMUM 800 characters for list/ranking queries
-- COMPLETE, full-length responses (not abbreviated)
+- For factual concept questions, keep the answer concise but complete
+- For list/ranking queries, include 2-3 items only if the user asked for them, each with short explanation + citations
+- Do not write a paper-style essay unless the user explicitly asks for one
+- Do not repeat the same instruction in multiple sentences
 - Never truncate or leave incomplete sentences
-- Include multiple papers/sources
-- Each list item: 2-3 sentences + citations
-- Use bullet points or numbering for clarity
+- Use bullets or numbering only when they improve clarity
+- Do not add a References section; the UI will render it from the retrieved sources
 """
+
+    def _extract_finish_reason(self, response) -> str:
+        """Best-effort extraction of the model finish reason."""
+        metadata = getattr(response, "response_metadata", {}) or {}
+        if isinstance(metadata, dict):
+            finish_reason = metadata.get("finish_reason") or metadata.get("stop_reason")
+            if finish_reason:
+                return str(finish_reason).upper()
+
+        additional_kwargs = getattr(response, "additional_kwargs", {}) or {}
+        if isinstance(additional_kwargs, dict):
+            finish_reason = additional_kwargs.get("finish_reason")
+            if finish_reason:
+                return str(finish_reason).upper()
+
+        return ""
+
+    def _looks_truncated(self, answer: str, finish_reason: str = "") -> bool:
+        """Heuristically detect answers that likely stopped early."""
+        stripped = (answer or "").strip()
+        if not stripped:
+            return True
+
+        if finish_reason in {"MAX_TOKENS", "LENGTH"}:
+            return True
+
+        if len(stripped) < MIN_COMPLETE_ANSWER_CHARS:
+            # Short answers are allowed for OOD, but not for RAG paper answers.
+            return not stripped.endswith((".", "!", "?", ")", "]"))
+
+        # If the answer ends without sentence punctuation, it may have been cut off.
+        return not stripped.endswith((".", "!", "?", ")", "]", "\"", "'"))
+
+    def _continue_answer(self, current_answer: str) -> str:
+        """Ask the model to continue a likely-truncated answer once."""
+        continuation_prompt = f"""The previous answer was cut off before it finished.
+
+Continue the answer from the exact point where it stopped.
+Do not repeat the earlier text.
+Keep the same grounding and citation style.
+Use only numbered citations like [1], [2], [3].
+Do not use chunk citations like [Chunk: ...] or paper citations like [Paper: ...].
+End with complete sentences.
+
+Previous answer:
+{current_answer}
+
+Continue now:"""
+
+        response = self.llm.invoke(continuation_prompt)
+        continuation = getattr(response, "content", "") or ""
+        if continuation.strip():
+            return current_answer.rstrip() + "\n" + continuation.lstrip()
+
+        return current_answer
+
+    def _format_chat_history(self, chat_history: list[dict]) -> str:
+        """Format recent chat turns for the generation prompt."""
+        rows = []
+        for message in chat_history or []:
+            role = str(message.get("role", "")).strip().lower()
+            if role not in {"user", "assistant"}:
+                continue
+
+            content = " ".join(str(message.get("content", "")).split()).strip()
+            if not content:
+                continue
+
+            if len(content) > 900:
+                content = content[:897].rstrip() + "..."
+
+            label = "User" if role == "user" else "Assistant"
+            rows.append(f"{label}: {content}")
+
+        return "\n".join(rows)
     
     def __call__(self, state: dict) -> dict:
         """Generate answer"""
@@ -65,10 +152,11 @@ OUTPUT REQUIREMENTS:
         intent = state.get("intent", "unclear")
         if intent == "ood" or intent == IntentType.OOD:
             print("\n[ANSWER_GENERATOR] Generating OOD response...")
-            ood_prompt = f"""The user asked a question outside of NLP/ML papers domain.
-User query: "{state.get('query', '')}"
+            original_question = state.get("original_question") or state.get("query", "")
+            ood_prompt = f"""The user asked a question outside of the NLP/ML/DL/AI paper domain.
+User query: "{original_question}"
 
-Provide a helpful but brief response, explaining that you specialize in NLP papers.
+Provide a helpful but brief response, explaining that you specialize in NLP/ML/DL/AI papers.
 Keep it under 200 tokens."""
             
             try:
@@ -77,12 +165,15 @@ Keep it under 200 tokens."""
                 state["answer_confidence"] = 0.5
             except Exception as e:
                 print(f"X Error: {e}")
-                state["initial_answer"] = "I specialize in NLP and ML papers. Please ask about NLP-related topics."
+                state["initial_answer"] = (
+                    "I specialize in NLP, ML, DL, and AI papers. "
+                    "Please ask about topics in that domain."
+                )
             
             state["execution_path"] = state.get("execution_path", []) + ["answer_generator"]
             return state
         
-        # For NLP queries, use RAG
+        # For in-domain queries, use RAG
         context_text = state.get("context_text", "")
         if not context_text:
             print("! [ANSWER_GENERATOR] No context available, skipping RAG generation")
@@ -91,41 +182,93 @@ Keep it under 200 tokens."""
         
         print("\n[ANSWER_GENERATOR] Generating RAG answer...")
         
+        original_question = state.get("original_question") or state.get("query", "")
+        standalone_question = state.get("standalone_question") or state.get("query", "")
+        chat_history_text = self._format_chat_history(state.get("chat_history", []))
+        chat_history_section = (
+            f"\n# Recent Chat History\n{chat_history_text}\n"
+            if chat_history_text
+            else ""
+        )
+
         rag_prompt = f"""{self.system_prompt}
 
-# Retrieved Papers Context
+# Retrieved Chunk Context
 {context_text}
+{chat_history_section}
+# Standalone Retrieval Question
+{standalone_question}
 
-# User Question
-{state.get('query', '')}
+# Original User Question
+{original_question}
 
-CRITICAL INSTRUCTIONS FOR THIS QUERY:
-1. Analyze ALL the papers above carefully
-2. Extract SPECIFIC model names, techniques, metrics, and results
-3. Write a SUBSTANTIVE answer with AT LEAST 800+ characters
-4. For list/ranking queries: provide structured list with explanations
-5. Include paper citations: [Paper: ID]
-6. DO NOT summarize vaguely - provide DETAILS
-7. DO NOT cut off - write COMPLETE sentences and thoughts
-8. If query asks for "Top N", list ALL N items with details
-9. Compare approaches where applicable
-10. Include performance metrics/benchmarks when available
+Answer the original user question using ONLY the retrieved context. Use the standalone retrieval question only to understand what the follow-up refers to.
 
-Now generate a DETAILED, COMPREHENSIVE, COMPLETE answer (minimum 800 chars) based ONLY on the retrieved papers. Write your answer now:"""
+Requirements:
+- Start with a direct answer
+- Support important claims with numbered citations
+- Use only citations in the form [1], [2], [3], matching the retrieved chunk number
+- Never use [Chunk: ...] or [Paper: ...]
+- You may cite multiple sources together as [1][2] when one sentence is supported by both
+- Keep the response clear, concise, and complete
+- If information is missing, explicitly say so
+- Avoid repeating the same fact in different words
+- Do not add a References section
+
+Now generate the answer:"""
         
         try:
             response = self.llm.invoke(rag_prompt)
-            state["initial_answer"] = response.content
+            answer = getattr(response, "content", "") or ""
+            finish_reason = self._extract_finish_reason(response)
+
+            if self._looks_truncated(answer, finish_reason):
+                print(
+                    f"! [ANSWER_GENERATOR] Answer may be truncated "
+                    f"(finish_reason={finish_reason or 'unknown'}, chars={len(answer)})"
+                )
+                try:
+                    answer = self._continue_answer(answer)
+                except Exception as continuation_error:
+                    print(f"! [ANSWER_GENERATOR] Continuation failed: {continuation_error}")
+
+            context_docs = state.get("context_documents", [])
+            answer = self._sanitize_answer(answer, context_docs)
+            state["initial_answer"] = answer
             
-            # Extract citations from answer (simple parsing)
-            import re
-            citations = re.findall(r'\[Paper:\s*([^\]]+)\]', state["initial_answer"])
-            state["answer_citations"] = [{"paper_id": c.strip()} for c in citations]
+            # Extract numbered citations from answer.
+            citations = re.findall(r'\[(\d+)\]', state["initial_answer"])
+            context_documents = context_docs
+            parsed_citations = []
+            seen_ref_numbers = set()
+            for citation in citations:
+                try:
+                    ref_number = int(citation)
+                except ValueError:
+                    continue
+                if ref_number in seen_ref_numbers:
+                    continue
+                if ref_number < 1 or ref_number > len(context_documents):
+                    continue
+
+                doc = context_documents[ref_number - 1]
+                seen_ref_numbers.add(ref_number)
+                parsed_citations.append(
+                    {
+                        "ref_number": ref_number,
+                        "paper_id": doc.get("paper_id"),
+                        "chunk_id": doc.get("chunk_id"),
+                    }
+                )
+            state["answer_citations"] = parsed_citations
             
             # Simple confidence scoring
-            context_docs = state.get("context_documents", [])
             state["answer_confidence"] = min(0.95, 0.7 + len(context_docs) * 0.05)
-            
+
+            print("\n[ANSWER_GENERATOR] Raw answer:")
+            print("-" * 80)
+            print(state["initial_answer"])
+            print("-" * 80)
             print(f"[OK] Answer generated ({len(state['initial_answer'])} chars, {len(citations)} citations)")
             
         except Exception as e:
@@ -135,3 +278,22 @@ Now generate a DETAILED, COMPREHENSIVE, COMPLETE answer (minimum 800 chars) base
         
         state["execution_path"] = state.get("execution_path", []) + ["answer_generator"]
         return state
+
+    def _sanitize_answer(self, answer: str, context_documents: list[dict] | None = None) -> str:
+        """Remove citation formats that are not allowed in this pipeline."""
+        if not answer:
+            return answer
+
+        chunk_ref_map = {}
+        for index, doc in enumerate(context_documents or [], 1):
+            chunk_id = str(doc.get("chunk_id") or "").strip()
+            if chunk_id:
+                chunk_ref_map[chunk_id] = f"[{index}]"
+
+        def _replace_chunk(match: re.Match) -> str:
+            chunk_id = match.group(1).strip()
+            return chunk_ref_map.get(chunk_id, "")
+
+        sanitized = re.sub(r"\[Chunk:\s*([^\]]+)\]", _replace_chunk, answer)
+        sanitized = re.sub(r"\[Paper:[^\]]+\]", "", sanitized)
+        return sanitized

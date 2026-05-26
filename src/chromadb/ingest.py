@@ -2,6 +2,11 @@
 # Encode documents (title + abstract) into embeddings and store them in ChromaDB for vector search (indexing stage)
 
 import json
+import os
+
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
+
 import chromadb
 import torch
 from sentence_transformers import SentenceTransformer
@@ -19,7 +24,8 @@ BATCH_SIZE = 128
 MIN_ABSTRACT_WORDS = 10  # ✅ safeguard nhẹ
 
 # ================= INIT =================
-client = chromadb.PersistentClient(path=CHROMA_PATH)
+from chromadb.config import Settings
+client = chromadb.PersistentClient(path=CHROMA_PATH, settings=Settings(anonymized_telemetry=False))
 
 collection = client.get_or_create_collection(
     name=COLLECTION_NAME,
@@ -67,7 +73,7 @@ def build_metadata(record):
     ref_titles = []
     ref_ids = []
 
-    for r in references[:20]:  # ⚠️ limit để tránh quá nặng
+    for r in references:
         if r.get("title"):
             ref_titles.append(r["title"])
         if r.get("id"):
@@ -77,7 +83,7 @@ def build_metadata(record):
     cita_titles = []
     cita_ids = []
 
-    for c in citations[:20]:  # ⚠️ limit
+    for c in citations:
         if c.get("title"):
             cita_titles.append(c["title"])
         if c.get("id"):

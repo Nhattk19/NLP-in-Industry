@@ -1,6 +1,9 @@
 # config.py
 # Store all configs here, including Hugging Face API key
+import os
 import torch
+
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
 QUERY_PROCESSING_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"  # can change to smaller model if needed
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -13,7 +16,7 @@ OUTPUT_PATH_RERANKED = "./src/chromadb/reranked_results.json"
 OUTPUT_PATH_CHROMADB = "./src/chromadb/results.json"
 OUTPUT_PATH_BM25 = "./src/bm25/results.json"
 
-DATA_PATH = "./data/data_processed/final_cleaned_data.jsonl"  # File chứa dữ liệu đã làm sạch (JSONL)
+DATA_PATH = "./data/data_processed/data_with_abstract_final.jsonl"  # Paper-level search data, aligned with Chroma abstracts
 QUERY_PATH = "./src/queries.json"  # File chứa các câu query (JSON)
 CHROMA_PATH = "./src/chromadb/chroma_store_abstracts"
 COLLECTION_NAME = "papers_abstracts"

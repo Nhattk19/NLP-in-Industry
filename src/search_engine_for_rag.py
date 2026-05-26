@@ -8,6 +8,7 @@ import sys
 os.environ["ANONYMIZED_TELEMETRY"] = "False"
 os.environ["CHROMA_TELEMETRY_IMPL"] = "none"
 
+from src.config import OUTPUT_PATH_RETRIEVED, OUTPUT_PATH_RERANKED, OUTPUT_PATH_CHROMADB
 
 # ================= BASE PATH =================
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,8 +21,8 @@ MODULE_GENERATE = "src.chromadb.generate_final"
 
 # ================= OUTPUT PATH =================
 LEXICAL_OUT = os.path.join(BASE_DIR, "src", "bm25", "results.json")
-SEMANTIC_RAW_OUT = os.path.join(BASE_DIR, "src", "chromadb", "retrieved_results.json")
-SEMANTIC_FINAL_OUT = os.path.join(BASE_DIR, "src", "chromadb", "results.json")
+SEMANTIC_RAW_OUT = os.path.join(BASE_DIR, "src", "chromadb", "results.json")
+SEMANTIC_FINAL_OUT = os.path.join(BASE_DIR, "src", "chromadb", "final_search_results.json")
 FINAL_OUT = os.path.join(BASE_DIR, "src", "final_results.json")
 
 # ================= CONFIG =================
@@ -46,6 +47,49 @@ def run_module(module_name):
         return False
 
 
+def _result_key(result: dict) -> str:
+    """Return the best available identity key for a retrieval result."""
+    if result.get("chunk_id"):
+        return str(result["chunk_id"])
+
+    paper_id = str(result.get("paper_id", ""))
+    chunk_index = result.get("chunk_index", None)
+    if chunk_index is not None and chunk_index != -1 and paper_id:
+        return f"{paper_id}_chunk_{int(chunk_index):04d}"
+
+    return paper_id
+
+
+def _unique_by_result_key(results):
+    """Keep the first occurrence for each chunk or paper key."""
+    unique = []
+    seen = set()
+
+    for res in results:
+        key = _result_key(res)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(res)
+
+    return unique
+
+
+def _merge_result_payload(base: dict, incoming: dict) -> dict:
+    """Merge two result payloads while preserving chunk-rich fields."""
+    merged = base.copy()
+
+    for key, value in incoming.items():
+        if key not in merged or merged[key] in ("", None, [], {}):
+            merged[key] = value
+            continue
+
+        if key in {"chunk_text", "text", "document"} and value:
+            merged[key] = value
+
+    return merged
+
+
 def apply_rrf_merge(lexical_results, semantic_results, top_k):
     """
     Generic RRF merging for in-memory result lists
@@ -53,28 +97,35 @@ def apply_rrf_merge(lexical_results, semantic_results, top_k):
     """
     rrf_scores = {}
     paper_info = {}
+
+    lexical_results = _unique_by_result_key(lexical_results)
+    semantic_results = _unique_by_result_key(semantic_results)
     
     # Add lexical results
     for res in lexical_results:
-        p_id = str(res["paper_id"])
+        key = _result_key(res)
         rank = res.get("rank", lexical_results.index(res) + 1)
-        rrf_scores[p_id] = rrf_scores.get(p_id, 0) + (1 / (60 + rank))
-        paper_info.setdefault(p_id, res)
+        rrf_scores[key] = rrf_scores.get(key, 0) + (1 / (60 + rank))
+        paper_info[key] = _merge_result_payload(paper_info.get(key, {}), res) if key in paper_info else res.copy()
     
     # Add semantic results
     for res in semantic_results:
-        p_id = str(res["paper_id"])
+        key = _result_key(res)
         rank = res.get("rank", semantic_results.index(res) + 1)
-        rrf_scores[p_id] = rrf_scores.get(p_id, 0) + (1 / (60 + rank))
-        paper_info.setdefault(p_id, res)
+        rrf_scores[key] = rrf_scores.get(key, 0) + (1 / (60 + rank))
+        paper_info[key] = _merge_result_payload(paper_info.get(key, {}), res) if key in paper_info else res.copy()
     
     # Sort by RRF score
     sorted_papers = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)
     
     # Build result list
     merged_results = []
-    for i, (p_id, score) in enumerate(sorted_papers[:top_k]):
-        info = paper_info[p_id].copy()
+    for i, (key, score) in enumerate(sorted_papers[:top_k]):
+        info = paper_info[key].copy()
+        # Preserve the original source score before normalizing the final
+        # hybrid ranking score into the canonical `score` field.
+        info["source_score"] = info.get("score", info.get("rrf_score", 0))
+        info["score"] = score
         info["rank"] = i + 1
         info["rrf_score"] = score
         merged_results.append(info)
@@ -104,20 +155,23 @@ def combine_hybrid_rrf(lexical_file, semantic_file, output_file, top_k):
         lex_results = lex_item.get("results", [])
         sem_results = sem_dict.get(query, [])
 
+        lex_results = _unique_by_result_key(lex_results)
+        sem_results = _unique_by_result_key(sem_results)
+
         rrf_scores = {}
         paper_info = {}
 
         for res in lex_results:
-            p_id = str(res["paper_id"])
+            p_id = _result_key(res)
             rank = res["rank"]
             rrf_scores[p_id] = rrf_scores.get(p_id, 0) + (1 / (60 + rank))
-            paper_info.setdefault(p_id, res)
+            paper_info[p_id] = _merge_result_payload(paper_info.get(p_id, {}), res) if p_id in paper_info else res.copy()
 
         for i, res in enumerate(sem_results):
-            p_id = str(res["paper_id"])
+            p_id = _result_key(res)
             rank = res.get("rank", i + 1)
             rrf_scores[p_id] = rrf_scores.get(p_id, 0) + (1 / (60 + rank))
-            paper_info.setdefault(p_id, res)
+            paper_info[p_id] = _merge_result_payload(paper_info.get(p_id, {}), res) if p_id in paper_info else res.copy()
 
         sorted_papers = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)
 
@@ -126,10 +180,15 @@ def combine_hybrid_rrf(lexical_file, semantic_file, output_file, top_k):
             info = paper_info[p_id]
             combined_results.append({
                 "rank": i + 1,
-                "paper_id": p_id,
+                "paper_id": info.get("paper_id", p_id),
                 "title": info.get("title", ""),
                 "abstract": info.get("abstract", ""),
-                "score": round(score, 4)
+                "chunk_text": info.get("chunk_text", info.get("text", "")),
+                "chunk_index": info.get("chunk_index", -1),
+                "chunk_id": info.get("chunk_id", p_id),
+                "score": round(score, 4),
+                "rrf_score": round(score, 4),
+                "source_score": round(float(info.get("score", 0) or 0), 4)
             })
 
         final_data.append({

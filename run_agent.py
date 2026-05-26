@@ -7,7 +7,12 @@ Use this to run the agent from command line
 import sys
 import argparse
 import json
+import os
 from pathlib import Path
+
+# Disable ChromaDB telemetry before any imports
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -18,6 +23,21 @@ project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
 from src.agent.agent import get_agent
+
+
+def _dedupe_by_paper_id(items: list[dict]) -> list[dict]:
+    """Keep the first item for each paper_id."""
+    unique = []
+    seen = set()
+
+    for item in items:
+        key = str(item.get("paper_id") or item.get("chunk_id") or "")
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(item)
+
+    return unique
 
 
 def print_result(result: dict):
@@ -37,18 +57,21 @@ def print_result(result: dict):
     # Print sources
     sources = result.get('sources', [])
     if sources:
+        sources = _dedupe_by_paper_id(sources)
         print(f"\nSources ({len(sources)}):")
-        for i, source in enumerate(sources[:5], 1):  # Show top 5
+        for i, source in enumerate(sources[:5], 1):  # Show top 5 unique papers
             print(f"  [{i}] {source.get('title')}")
-            print(f"      ID: {source.get('paper_id')} | Score: {source.get('score', 0):.4f}")
+            print(f"      ID: {source.get('paper_id')}")
     
     # Print external papers if used
     external_papers = result.get('external_papers', [])
     if external_papers and result.get('used_external_papers'):
+        external_papers = _dedupe_by_paper_id(external_papers)
         print(f"\n[EXT] External Papers (From arXiv):")
         for i, paper in enumerate(external_papers[:5], 1):
             print(f"  [{i}] {paper.get('title')}")
-            print(f"      Source: {paper.get('source')} | URL: {paper.get('url')[:60]}...")
+            source_url = paper.get("source_url") or paper.get("url") or ""
+            print(f"      Source: {paper.get('source')} | URL: {source_url[:60]}...")
     
     # Print metadata
     print(f"\nMetadata:")
