@@ -32,3 +32,5 @@ data/data_processed/*.json
 *.db
 *.json
 Google_api_key.txt
+nlp-kg-search.tar
+.venv

@@ -215,6 +215,72 @@ python src/chromadb/ingest.py
 python src/chroma_fulltext/ingest.py
 ```
 
+### 5.3. Run With Docker
+
+Docker is the easiest way to give this project to someone else to run. The
+image includes the Streamlit app and any local processed data / ChromaDB stores
+that exist in this folder at build time.
+
+Prepare the environment file:
+
+```bash
+cp .env.docker.example .env
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.docker.example .env
+```
+
+Then open `.env` and set:
+
+```env
+GOOGLE_API_KEY=your_google_gemini_api_key_here
+```
+
+Build and run:
+
+```bash
+docker compose up --build
+```
+
+Open:
+
+```text
+http://localhost:8501
+```
+
+To stop the app:
+
+```bash
+docker compose down
+```
+
+If you want to send a ready-built image to another machine:
+
+```bash
+docker compose build
+docker save -o nlp-kg-search.tar nlp-kg-search:latest
+```
+
+On the other machine:
+
+```bash
+docker load -i nlp-kg-search.tar
+docker run --env-file .env -p 8501:8501 nlp-kg-search:latest
+```
+
+Notes:
+
+- Do not bake `.env`, `Google_api_key.txt`, or API tokens into the image.
+- Build the image from a folder that already contains
+  `data/data_processed/final_cleaned_data.jsonl`,
+  `src/chromadb/chroma_store_abstracts/`, and
+  `data/chroma_store_fulltext/` if you want the app to run without rebuilding
+  indexes.
+- The image can be large because the ChromaDB stores are a few GB.
+
 ## 6. Description Of Deployment Method
 
 The deployment method is a Streamlit application running in a Python environment with the required data files and vector stores available locally.

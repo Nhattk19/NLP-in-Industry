@@ -18,3 +18,4 @@ torch
 tqdm
 transformers
 typing-extensions>=4.0
+torchvision

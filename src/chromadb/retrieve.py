@@ -9,17 +9,15 @@ from chromadb.utils import embedding_functions
 os.environ["CHROMA_TELEMETRY_IMPL"] = "none"
 
 # ================= CẨU HÌNH ĐƯỜNG DẪN =================
-# Try fulltext first, fall back to abstracts
-CHROMA_PATH_FULLTEXT = "./data/chroma_store_fulltext"
 CHROMA_PATH_ABSTRACTS = "./src/chromadb/chroma_store_abstracts"
 
 # Use whichever exists
 import os
-if os.path.exists(CHROMA_PATH_FULLTEXT):
-    CHROMA_PATH = CHROMA_PATH_FULLTEXT
-    COLLECTION_NAME = "papers_fulltext"
+if os.path.exists(CHROMA_PATH_ABSTRACTS):
+    CHROMA_PATH = CHROMA_PATH_ABSTRACTS
+    COLLECTION_NAME = "papers_abstracts"
 else:
-    print(f"[ERROR] Không tìm thấy ChromaDB store ở đường dẫn: {CHROMA_PATH_FULLTEXT}")
+    print(f"[ERROR] Không tìm thấy ChromaDB store ở đường dẫn: {CHROMA_PATH_ABSTRACTS}")
     sys.exit(1)
 
 QUERY_PATH = "./src/queries.json"

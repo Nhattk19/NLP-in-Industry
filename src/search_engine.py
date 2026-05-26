@@ -20,8 +20,8 @@ MODULE_GENERATE = "src.chromadb.generate_final"
 
 # ================= OUTPUT PATH =================
 LEXICAL_OUT = os.path.join(BASE_DIR, "src", "bm25", "results.json")
-SEMANTIC_RAW_OUT = os.path.join(BASE_DIR, "src", "chromadb", "results.json")
-SEMANTIC_FINAL_OUT = os.path.join(BASE_DIR, "src", "chromadb", "final_search_results.json")
+SEMANTIC_RAW_OUT = os.path.join(BASE_DIR, "src", "chromadb", "retrieved_results.json")
+SEMANTIC_FINAL_OUT = os.path.join(BASE_DIR, "src", "chromadb", "results.json")
 FINAL_OUT = os.path.join(BASE_DIR, "src", "final_results.json")
 
 # ================= CONFIG =================
