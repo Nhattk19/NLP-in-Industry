@@ -364,39 +364,98 @@ div[data-testid="stChatMessage"] {
     font-weight: 700;
 }
 
-div[data-testid="stChatInput"] [data-baseweb="textarea"] {
-    border: 1px solid #d0d7e2;
-    border-radius: 20px;
-    padding: 0 8px;
-    background: #f3f5f9;
-    transition: border-color 0.18s ease, background-color 0.18s ease;
-    display: flex;
-    align-items: center;
-}
-
-div[data-testid="stChatInput"] textarea {
-    font-family: 'Inter', sans-serif !important;
-    font-size: 0.92rem !important;
-    line-height: 1.4 !important;
-    border: none !important;
-    background: transparent !important;
-    color: #2f2923 !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    padding: 0.45rem !important;
-    width: 100% !important;
-}
-
 div[data-testid="stChatInput"] {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    background: #ffffff !important;
+    border-top: 1px solid #eef2f7 !important;
+    padding: 12px 0 16px !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
 }
 
 div[data-testid="stChatInput"] > div {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
+}
+
+div[data-testid="stChatInput"] [data-baseweb="textarea"] {
+    min-height: 44px !important;
+    border: 1px solid #d7dde8 !important;
+    border-radius: 14px !important;
+    padding: 0 44px 0 12px !important;
+    background: #f8fafc !important;
+    box-shadow: none !important;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    display: flex !important;
+    align-items: center !important;
+}
+
+div[data-testid="stChatInput"] [data-baseweb="textarea"]:focus-within {
+    border-color: #1a73e8 !important;
+    background: #ffffff !important;
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.12) !important;
+}
+
+div[data-testid="stChatInput"] textarea {
+    min-height: 42px !important;
+    height: 42px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.92rem !important;
+    line-height: 1.4 !important;
+    border: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    color: #2f2923 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 10px 0 !important;
+    width: 100% !important;
+    resize: none !important;
+}
+
+div[data-testid="stChatInput"] textarea::placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stChatInput"] [data-testid="stChatInputSubmitButton"] {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: #e9eef6 !important;
+    color: #526071 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-right: 5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+div[data-testid="stChatInput"] [data-testid="stChatInputSubmitButton"]:not(:disabled) {
+    background: #1a73e8 !important;
+    color: #ffffff !important;
+}
+
+div[data-testid="stChatInput"] [data-testid="stChatInputSubmitButton"]:not(:disabled):hover {
+    background: #dbeafe !important;
+    color: #1a73e8 !important;
+}
+
+div[data-testid="stChatInput"] [data-testid="stChatInputSubmitButton"]:focus,
+div[data-testid="stChatInput"] [data-testid="stChatInputSubmitButton"]:focus-visible {
+    outline: 0 !important;
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.16) !important;
+}
+
+div[data-testid="stChatInput"] svg {
+    width: 18px !important;
+    height: 18px !important;
 }
 
 div[data-testid="stAlert"] {
