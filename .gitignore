@@ -49,3 +49,11 @@ nlp-kg-search.tar
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Keep local documentation, tests, UI settings, and CSV files off GitHub
+/md/
+/tests/
+/.streamlit/
+/config/
+/configs/
+*.csv
