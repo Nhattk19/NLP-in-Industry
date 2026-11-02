@@ -24,6 +24,11 @@ src/web/pages/api_agent.txt
 *.log
 *.tmp
 *.bak
+/Report/
+/LitRAG-NLP*.pdf
+/output/
+/tmp/
+/data/chat_history/
 
 # Raw pipeline inputs are not needed for running the demo image.
 data/data_raw/

@@ -34,3 +34,18 @@ data/data_processed/*.json
 Google_api_key.txt
 nlp-kg-search.tar
 .venv
+
+# Local reports, generated artifacts, and private runtime state
+/Report/
+/LitRAG-NLP*.pdf
+/output/
+/tmp/
+/data/chat_history/
+*.log
+.env.*
+!.env.example
+!.env.docker.example
+.streamlit/secrets.toml
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

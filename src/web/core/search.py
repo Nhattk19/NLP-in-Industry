@@ -7,20 +7,14 @@ os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
 from flashrank import RerankRequest
 
 from core.config import TOP_K
-from core.resources import init_abstract_embedder, tokenize
+from core.resources import tokenize
 
 
 def vector_search(collection, query: str, top_k: int = TOP_K) -> list[dict]:
-    embedder = init_abstract_embedder()
-    query_embedding = embedder.encode(
-        [query],
-        show_progress_bar=False,
-    ).tolist()
-
     # Suppress ChromaDB internal logging
     with redirect_stdout(open(os.devnull, 'w')), redirect_stderr(open(os.devnull, 'w')):
         results = collection.query(
-            query_embeddings=query_embedding,
+            query_texts=[query],
             n_results=top_k,
             include=["metadatas", "distances"],
         )

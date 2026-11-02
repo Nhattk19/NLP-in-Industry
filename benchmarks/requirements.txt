@@ -1,0 +1,4 @@
+# Install after the application's requirements.txt for evaluation scripts.
+numpy
+matplotlib
+psutil

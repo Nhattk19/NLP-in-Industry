@@ -1,62 +1,16 @@
+"""One shared visual theme for all Streamlit pages."""
+from pathlib import Path
 import streamlit as st
 
 
 def apply_page_config() -> None:
-    st.set_page_config(
-        page_title="NLP Scholar",
-        page_icon="Search",
-        layout="wide",
-        initial_sidebar_state="expanded",
-    )
+    st.set_page_config(page_title="NLP Scholar", page_icon=":material/menu_book:", layout="wide", initial_sidebar_state="auto")
 
 
 def inject_global_css() -> None:
-    st.markdown(
-        """
-        <style>
-        section[data-testid="stSidebar"] [data-testid="stSidebarNav"],
-        section[data-testid="stSidebar"] [data-testid="stSidebarNavItems"],
-        section[data-testid="stSidebar"] [data-testid="stSidebarNavSeparator"],
-        section[data-testid="stSidebar"] nav[aria-label="Sidebar navigation"],
-        section[data-testid="stSidebar"] [aria-label="Sidebar navigation"],
-        section[data-testid="stSidebar"] nav,
-        section[data-testid="stSidebar"] ul,
-        section[data-testid="stSidebar"] hr {
-            display: none !important;
-        }
-        section[data-testid="stSidebar"] > div:first-child {
-            display: none !important;
-        }
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="collapsedControl"] {
-            display: none !important;
-        }
-        .title-text {
-            text-align: center;
-            color: #0d47a1;
-            font-size: 4.5rem;
-            font-weight: 700;
-            margin-bottom: 0;
-            margin-top: 5vh;
-        }
-        .subtitle-text {
-            text-align: center;
-            color: #757575;
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            font-weight: 500;
-        }
-        div.stButton > button:first-child {
-            background-color: #0d47a1;
-            color: white;
-            border-radius: 8px;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-        div.stButton > button:first-child:hover {
-            background-color: #0b3c8a;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    css = Path(__file__).with_name("styles.css").read_text(encoding="utf-8-sig")
+    # Hide the unused sidebar only on search/detail pages. Preserve chat's native
+    # collapse controls so history remains accessible at narrow viewport widths.
+    if st.session_state.get("page", "home") != "chat_rag":
+        css += '\n[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] {display:none;}'
+    st.html(f"<style>{css}</style>")

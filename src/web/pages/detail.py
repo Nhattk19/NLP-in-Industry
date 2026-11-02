@@ -4,306 +4,13 @@ from html import escape
 import streamlit as st
 
 from core.search import hybrid_search
+from core.navigation import detail_back_label, return_from_detail
 from core.detail_rag import paper_has_fulltext_chunks, run_detail_rag
+from core.references import normalize_references
 from pages.results import RESULT_CARD_STYLE, build_results_dataframe, render_result_card
 
 
-DETAIL_PAGE_STYLE = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-    background: #ffffff;
-    color: #2f2923;
-}
-[data-testid="stAppViewContainer"],
-[data-testid="stMain"],
-[data-testid="stMainBlockContainer"],
-.stApp,
-section[data-testid="stSidebar"] {
-    background: #ffffff !important;
-}
-[data-testid="stSidebarNavItems"] { display: none; }
-
-div.stButton > button {
-    background: #ffffff;
-    color: #1a73e8;
-    border: 1px solid #d6e3fb;
-    border-radius: 16px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 0.65rem 1rem;
-    box-shadow: 0 8px 22px rgba(26, 115, 232, 0.08);
-    transition: all 0.2s ease;
-}
-div.stButton > button:hover {
-    background: #eef5ff;
-    border-color: #bfd5fb;
-    color: #1557b0;
-}
-div.stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
-    color: #ffffff;
-    border-color: #1a73e8;
-    box-shadow: 0 12px 28px rgba(26, 115, 232, 0.18);
-}
-
-.detail-title { font-size: 1.6rem; font-weight: 700; color: #2f2923; margin: 10px 0 12px; line-height: 1.3; }
-.detail-authors { font-size: 1rem; color: #5f5145; margin-bottom: 10px; font-weight: 500; }
-.detail-meta { font-size: 0.9rem; color: #6b7280; margin-bottom: 16px; }
-.detail-meta .venue { color: #1a73e8; font-weight: 600; }
-.section-title { font-size: 1.1rem; font-weight: 600; color: #2f2923; margin: 24px 0 12px; border-bottom: 1px solid #dbe7fb; padding-bottom: 6px; }
-.detail-abstract {
-    font-size: 0.95rem;
-    color: #463c34;
-    line-height: 1.6;
-    text-align: justify;
-    background: #ffffff;
-    padding: 18px;
-    border-radius: 18px;
-    border: 1px solid #dbe7fb;
-    box-shadow: 0 10px 24px rgba(26, 115, 232, 0.04);
-}
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; align-items: center; }
-.chip {
-    background: #f5f8fd;
-    color: #4f5f7a;
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border: 1px solid #e2e9f5;
-    white-space: nowrap;
-}
-.chip-survey { background:#eef4ff; color:#1e63e8; border-color:#d0defb; font-weight:700; }
-.link-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #ffffff;
-    color: #1a73e8 !important;
-    border: 1px solid #cfe0ff;
-    border-radius: 999px;
-    padding: 7px 16px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none !important;
-    margin-right: 8px;
-    margin-bottom: 8px;
-}
-.list-item { font-size: 0.9rem; margin-bottom: 8px; color: #4f4033; line-height: 1.5; }
-.chat-placeholder {
-    background: #ffffff;
-    border: 1px solid #dbe7fb;
-    border-radius: 20px;
-    padding: 18px;
-    min-height: 420px;
-    position: sticky;
-    top: 20px;
-    box-shadow: 0 12px 28px rgba(26, 115, 232, 0.05);
-}
-.chat-placeholder-title { font-size: 1.05rem; font-weight: 700; color: #3f342b; margin-bottom: 10px; }
-.chat-placeholder-text { font-size: 0.9rem; color: #746556; line-height: 1.6; }
-.st-key-paper_chat_panel {
-    position: sticky;
-    top: 20px;
-}
-.paper-chat-frame {
-    height: calc(70vh - 76px);
-    min-height: 430px;
-    max-height: 680px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: #f7f8fa;
-    border: 1px solid #d8dee9;
-    border-bottom: 0;
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
-}
-.paper-chat-header {
-    flex: 0 0 auto;
-    background: #ffffff;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 14px 16px 12px;
-}
-.paper-chat-title {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #1f2937;
-    margin-bottom: 3px;
-}
-.paper-chat-description {
-    font-size: 0.82rem;
-    color: #6b7280;
-    line-height: 1.4;
-}
-.paper-chat-messages {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    padding: 14px;
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
-}
-.paper-chat-messages::-webkit-scrollbar { width: 7px; }
-.paper-chat-messages::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 999px;
-}
-.paper-chat-messages-inner {
-    min-height: 100%;
-    display: flex;
-    flex-direction: column-reverse;
-    justify-content: flex-start;
-    gap: 10px;
-}
-.paper-chat-row {
-    display: flex;
-    width: 100%;
-}
-.paper-chat-row-user {
-    justify-content: flex-end;
-}
-.paper-chat-row-assistant {
-    justify-content: flex-start;
-}
-.paper-chat-bubble {
-    max-width: 88%;
-    border-radius: 17px;
-    padding: 10px 13px;
-    line-height: 1.55;
-    font-size: 0.88rem;
-    overflow-wrap: anywhere;
-}
-.paper-chat-bubble p {
-    margin: 0 0 8px;
-}
-.paper-chat-bubble p:last-child {
-    margin-bottom: 0;
-}
-.paper-chat-bubble ul {
-    margin: 8px 0 8px 1.1rem;
-    padding: 0;
-}
-.paper-chat-bubble li {
-    margin: 5px 0;
-    padding-left: 2px;
-}
-.paper-chat-bubble strong {
-    font-weight: 700;
-}
-.paper-chat-row-user .paper-chat-bubble {
-    color: #ffffff;
-    background: #1a73e8;
-    border-bottom-right-radius: 6px;
-    box-shadow: 0 8px 18px rgba(26, 115, 232, 0.18);
-}
-.paper-chat-row-assistant .paper-chat-bubble {
-    color: #2f2923;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-bottom-left-radius: 6px;
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
-}
-.paper-chat-empty {
-    align-self: center;
-    margin: auto;
-    max-width: 92%;
-    color: #7a6d60;
-    background: #ffffff;
-    border: 1px dashed #cfd8e6;
-    border-radius: 16px;
-    padding: 14px;
-    font-size: 0.87rem;
-    line-height: 1.55;
-    text-align: center;
-}
-.paper-chat-typing {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    min-width: 48px;
-}
-.paper-chat-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: #9ca3af;
-    animation: paper-chat-pulse 1s infinite ease-in-out;
-}
-.paper-chat-dot:nth-child(2) { animation-delay: 0.15s; }
-.paper-chat-dot:nth-child(3) { animation-delay: 0.3s; }
-@keyframes paper-chat-pulse {
-    0%, 80%, 100% { opacity: 0.35; transform: translateY(0); }
-    40% { opacity: 1; transform: translateY(-2px); }
-}
-.st-key-paper_chat_panel div[data-testid="stForm"] {
-    margin: 0;
-    padding: 10px 12px 12px;
-    background: #ffffff;
-    border: 1px solid #d8dee9;
-    border-top: 0;
-    border-radius: 0 0 20px 20px;
-    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
-}
-.st-key-paper_chat_panel [data-testid="stTextInput"] {
-    margin-bottom: 0;
-}
-.st-key-paper_chat_panel [data-testid="InputInstructions"] {
-    display: none;
-}
-.st-key-paper_chat_panel [data-testid="stTextInput"] input {
-    min-height: 44px;
-    border-radius: 14px;
-    border: 1px solid #d7dde8;
-    background: #f8fafc;
-    color: #1f2937;
-    font-size: 0.9rem;
-}
-.st-key-paper_chat_panel [data-testid="stTextInput"] input:focus {
-    border-color: #1a73e8;
-    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.12);
-}
-.st-key-paper_chat_panel div.stButton > button {
-    min-height: 44px;
-    border-radius: 14px;
-    padding: 0 0.9rem;
-    box-shadow: none;
-}
-.chunk-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    vertical-align: baseline;
-    padding: 0.08rem 0.55rem;
-    margin: 0 2px;
-    border-radius: 999px;
-    background: #f4f7ff;
-    border: 1px solid #d8e2fb;
-    color: #5f6b86;
-    font-size: 0.78em;
-    font-weight: 600;
-    line-height: 1.3;
-    white-space: nowrap;
-}
-.chunk-tag-label {
-    color: #7d8aa5;
-    font-size: 0.9em;
-    letter-spacing: 0.01em;
-}
-.chunk-tag-sep {
-    color: #a4afc3;
-}
-.chunk-tag-id {
-    color: #1a73e8;
-    font-variant-numeric: tabular-nums;
-    font-weight: 700;
-}
-.paper-tab-empty { font-size: 0.92rem; color: #7e7063; padding: 8px 0; }
-.detail-tab-offset { margin-top: 34px; }
-</style>
-"""
+DETAIL_PAGE_STYLE = ""  # Visual styles live in core/styles.css.
 
 
 def _normalize_text(value: object) -> str:
@@ -383,6 +90,10 @@ def _init_detail_chat_session(paper_id: str) -> list[dict]:
 
 def _paper_chat_message_html(message: dict) -> str:
     role = message.get("role", "assistant")
+    if role == "assistant":
+        message = dict(message)
+        message["content"], message["sources"] = normalize_references(
+            message.get("content", ""), message.get("sources", []))
     role_class = "paper-chat-row-user" if role == "user" else "paper-chat-row-assistant"
     content = _render_annotated_text(message.get("content", ""))
     return (
@@ -424,7 +135,7 @@ def _render_detail_chat_frame(history: list[dict], is_generating: bool = False, 
             '</div>'
         )
 
-    st.markdown(
+    st.html(
         f"""
         <div class="paper-chat-frame">
             <div class="paper-chat-header">
@@ -438,7 +149,6 @@ def _render_detail_chat_frame(history: list[dict], is_generating: bool = False, 
             </div>
         </div>
         """,
-        unsafe_allow_html=True,
     )
 
 
@@ -462,21 +172,15 @@ def _render_detail_chat_panel(paper: dict) -> None:
             enter_to_submit=False,
             border=False,
         ):
-            input_col, send_col = st.columns([5, 1.15], gap="small", vertical_alignment="bottom")
-            with input_col:
-                question = st.text_input(
-                    "Ask this paper",
-                    placeholder="Ask about methods, results, limitations...",
-                    label_visibility="collapsed",
-                    disabled=bool(pending_question),
-                )
-            with send_col:
-                submitted = st.form_submit_button(
-                    "Send",
-                    type="primary",
-                    width="stretch",
-                    disabled=bool(pending_question),
-                )
+            question = st.text_input(
+                "Ask this paper",
+                placeholder="Ask about methods, results, limitations...",
+                disabled=bool(pending_question),
+            )
+            submitted = st.form_submit_button(
+                "Send", type="primary", width="stretch",
+                disabled=bool(pending_question),
+            )
 
     if pending_question:
         result = run_detail_rag(paper, pending_question)
@@ -516,19 +220,7 @@ def _render_detail_chat_section(paper: dict) -> None:
 
 
 def _back_to_results() -> None:
-    st.session_state.page = "results"
-
-    query = str(st.session_state.get("search_query", "") or "").strip()
-    if query and not str(st.query_params.get("q", "") or "").strip():
-        st.query_params["q"] = query
-    if "semantic" not in st.query_params:
-        st.query_params["semantic"] = "1" if bool(st.session_state.get("enable_semantic", True)) else "0"
-    if "page" not in st.query_params:
-        st.query_params["page"] = str(st.session_state.get("result_page", 0) or 0)
-
-    if "detail" in st.query_params:
-        del st.query_params["detail"]
-    st.rerun()
+    return_from_detail()
 
 
 def _get_related_papers(paper: dict, collection, reranker, bm25_engine, bm25_metadata) -> list[dict]:
@@ -569,14 +261,12 @@ def _get_related_papers(paper: dict, collection, reranker, bm25_engine, bm25_met
 
 
 def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -> None:
-    st.markdown(DETAIL_PAGE_STYLE, unsafe_allow_html=True)
-    st.markdown(RESULT_CARD_STYLE, unsafe_allow_html=True)
     st.session_state.setdefault("detail_active_tab", "citations")
 
     paper = st.session_state.get("selected_paper")
     if not paper:
         st.warning("Paper information was not found.")
-        if st.button("Back to search results"):
+        if st.button(detail_back_label(), key="missing_detail_back"):
             _back_to_results()
         return
 
@@ -596,7 +286,9 @@ def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -
     paper_id = str(paper.get("paper_id", "")).strip()
 
     doi = str(paper.get("doi", "")).strip()
+    doi_url = doi if doi.startswith(("https://", "http://")) else f"https://doi.org/{doi}"
     arxiv = str(paper.get("arxiv", "")).strip()
+    arxiv_url = arxiv if arxiv.startswith(("https://", "http://")) else f"https://arxiv.org/abs/{arxiv}"
     s2_url = str(paper.get("s2_url", "")).strip()
 
     ref_titles = _parse_list_string(paper.get("reference_titles", ""))
@@ -604,21 +296,20 @@ def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -
     ref_count = paper.get("reference_count", len(ref_titles))
     cit_net_count = paper.get("citation_network_count", len(cit_titles))
 
-    back_col, _ = st.columns([1, 6])
-    with back_col:
-        if st.button("Back to Results", width="stretch"):
-            _back_to_results()
+    with st.container(key="detail_navigation"):
+        if st.button(detail_back_label(), key="detail_back", width="content"):
+            return_from_detail()
 
     main_col, side_col = st.columns([2, 1], gap="large")
 
     with main_col:
-        st.markdown(f'<div class="detail-title">{title}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="detail-authors">{authors_str}</div>', unsafe_allow_html=True)
+        st.html(f'<div class="detail-title">{title}</div>',)
+        st.html(f'<div class="detail-authors">{authors_str}</div>',)
 
         venue_html = f'<span class="venue">@{venue}</span>' if venue else ""
         date_html = f" · {pub_date}" if pub_date else ""
         if venue_html or date_html:
-            st.markdown(f'<div class="detail-meta">{venue_html}{date_html}</div>', unsafe_allow_html=True)
+            st.html(f'<div class="detail-meta">{venue_html}{date_html}</div>',)
 
         chips_html = ['<div class="chips">']
         if cite_count not in ("", None, "nan"):
@@ -629,23 +320,23 @@ def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -
         if paper_id:
             chips_html.append(f'<span class="chip">ID: {escape(paper_id)}</span>')
         chips_html.append("</div>")
-        st.markdown("".join(chips_html), unsafe_allow_html=True)
+        st.html("".join(chips_html),)
 
         links_html = ["<div>"]
         if arxiv and arxiv.lower() != "nan":
-            links_html.append(f'<a href="https://arxiv.org/abs/{escape(arxiv)}" target="_blank" class="link-btn">arXiv</a>')
+            links_html.append(f'<a href="{escape(arxiv_url, quote=True)}" target="_blank" class="link-btn">arXiv</a>')
         if doi and doi.lower() != "nan":
-            links_html.append(f'<a href="https://doi.org/{escape(doi)}" target="_blank" class="link-btn">DOI</a>')
+            links_html.append(f'<a href="{escape(doi_url, quote=True)}" target="_blank" class="link-btn">DOI</a>')
         if s2_url and s2_url.lower() != "nan":
             links_html.append(f'<a href="{escape(s2_url)}" target="_blank" class="link-btn">Semantic Scholar</a>')
         links_html.append("</div>")
         if len(links_html) > 2:
-            st.markdown("".join(links_html), unsafe_allow_html=True)
+            st.html("".join(links_html),)
 
-        st.markdown('<div class="section-title">Abstract</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="detail-abstract">{abstract}</div>', unsafe_allow_html=True)
+        st.html('<div class="section-title">Abstract</div>',)
+        st.html(f'<div class="detail-abstract">{abstract}</div>',)
 
-        st.markdown('<div class="detail-tab-offset"></div>', unsafe_allow_html=True)
+        st.html('<div class="detail-tab-offset"></div>',)
         tab_cols = st.columns(3, gap="medium")
         with tab_cols[0]:
             if st.button(
@@ -677,36 +368,33 @@ def render_paper_detail_page(collection, reranker, bm25_engine, bm25_metadata) -
 
         active_tab = st.session_state.detail_active_tab
         if active_tab == "citations":
-            st.markdown(f'<div class="section-title">Citations ({cit_net_count})</div>', unsafe_allow_html=True)
+            st.html(f'<div class="section-title">Citations ({cit_net_count})</div>',)
             if cit_titles:
-                st.markdown(
+                st.html(
                     "".join(f'<div class="list-item">• {escape(_normalize_text(item))}</div>' for item in cit_titles),
-                    unsafe_allow_html=True,
                 )
             else:
-                st.markdown('<div class="paper-tab-empty">No citation data available.</div>', unsafe_allow_html=True)
+                st.html('<div class="paper-tab-empty">No citation data available.</div>',)
         elif active_tab == "references":
-            st.markdown(f'<div class="section-title">References ({ref_count})</div>', unsafe_allow_html=True)
+            st.html(f'<div class="section-title">References ({ref_count})</div>',)
             if ref_titles:
-                st.markdown(
+                st.html(
                     "".join(f'<div class="list-item">• {escape(_normalize_text(item))}</div>' for item in ref_titles),
-                    unsafe_allow_html=True,
                 )
             else:
-                st.markdown('<div class="paper-tab-empty">No reference data available.</div>', unsafe_allow_html=True)
+                st.html('<div class="paper-tab-empty">No reference data available.</div>',)
         else:
-            st.markdown('<div class="section-title">Related Papers</div>', unsafe_allow_html=True)
+            st.html('<div class="section-title">Related Papers</div>',)
             related_results = _get_related_papers(paper, collection, reranker, bm25_engine, bm25_metadata)
             if related_results:
                 related_df = build_results_dataframe(related_results, is_semantic=False)
-                st.markdown(
+                st.html(
                     f'<div class="paper-tab-empty">Top {len(related_df)} related papers from hybrid search.</div>',
-                    unsafe_allow_html=True,
                 )
                 for index, (_, row) in enumerate(related_df.iterrows()):
                     render_result_card(row, card_key=f"related_{paper_id}_{index}")
             else:
-                st.markdown('<div class="paper-tab-empty">No suitable related papers found.</div>', unsafe_allow_html=True)
+                st.html('<div class="paper-tab-empty">No suitable related papers found.</div>',)
 
     with side_col:
         _render_detail_chat_section(paper)

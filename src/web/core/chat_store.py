@@ -7,6 +7,7 @@ from pathlib import Path
 from threading import RLock
 from typing import Any, Callable
 from uuid import uuid4
+from core.references import normalize_references
 
 
 ROOT_DIR = Path(__file__).resolve().parents[3]
@@ -38,6 +39,7 @@ def _normalize_messages(messages: object) -> list[dict[str, Any]]:
         if item["role"] == "assistant":
             if not isinstance(item.get("sources"), list):
                 item["sources"] = []
+            item["content"], item["sources"] = normalize_references(item["content"], item["sources"])
             if not isinstance(item.get("execution_path"), list):
                 item["execution_path"] = []
         normalized.append(item)
@@ -107,7 +109,7 @@ def load_chat_store() -> dict[str, Any]:
                 active_chat_id = active_value
 
         store = {"active_chat_id": active_chat_id, "sessions": sessions}
-        if removed_empty_sessions:
+        if removed_empty_sessions or (isinstance(data, dict) and store != data):
             save_chat_store(store)
 
         return store

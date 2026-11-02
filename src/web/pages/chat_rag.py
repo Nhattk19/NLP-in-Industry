@@ -4,7 +4,7 @@ import re
 from copy import deepcopy
 from datetime import datetime, timezone
 from html import escape
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 import streamlit as st
 
@@ -17,454 +17,10 @@ from core.chat_store import (
     upsert_chat_session,
 )
 from core.rag import AGENT_MODEL, run_agent_rag
+from core.references import normalize_references
 
 
-CHAT_STYLE = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-    background: #ffffff;
-    color: #2f2923;
-}
-[data-testid="stAppViewContainer"],
-[data-testid="stMain"],
-[data-testid="stMainBlockContainer"],
-.stApp {
-    background: #ffffff !important;
-}
-section[data-testid="stSidebar"] {
-    display: block !important;
-    background: #ffffff !important;
-    border-right: 1px solid #ececec;
-    box-shadow: none !important;
-    min-width: 264px !important;
-    max-width: 264px !important;
-}
-section[data-testid="stSidebar"] > div:first-child {
-    display: block !important;
-}
-section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
-    display: block !important;
-    padding: 16px 12px 10px;
-    background: #ffffff !important;
-}
-section[data-testid="stSidebar"] div.stButton > button {
-    width: 100% !important;
-    text-align: left !important;
-    justify-content: flex-start !important;
-    min-height: 36px;
-    border-radius: 9px !important;
-    margin-bottom: 2px;
-    box-shadow: none !important;
-    background: transparent !important;
-    border: 0 !important;
-    color: #111111 !important;
-    font-size: 0.88rem !important;
-    font-weight: 400 !important;
-    padding: 0.36rem 0.55rem !important;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-section[data-testid="stSidebar"] div.stButton > button[kind="primary"] {
-    background: #f0f0f0 !important;
-    color: #111111 !important;
-    border: 0 !important;
-    font-weight: 500 !important;
-}
-section[data-testid="stSidebar"] div.stButton > button:hover {
-    background: #f5f5f5 !important;
-    color: #111111 !important;
-    border: 0 !important;
-}
-section[data-testid="stSidebar"] div[data-testid="stTextInput"] {
-    margin: 2px 0 12px;
-}
-section[data-testid="stSidebar"] input {
-    min-height: 36px !important;
-    border-radius: 9px !important;
-    border: 0 !important;
-    background: transparent !important;
-    color: #111111 !important;
-    font-size: 0.88rem !important;
-    padding-left: 0.55rem !important;
-}
-section[data-testid="stSidebar"] input:focus {
-    background: #f5f5f5 !important;
-    box-shadow: none !important;
-}
-section[data-testid="stSidebar"] [data-baseweb="input"] {
-    border: 0 !important;
-    background: transparent !important;
-}
-#MainMenu, footer, header { visibility: hidden; }
-
-.chat-topbar {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 18px 0 16px;
-    border-bottom: 1px solid #dbe7fb;
-    margin-bottom: 28px;
-}
-.chat-topbar-title {
-    font-family: 'Inter', sans-serif;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #2f2923;
-    margin: 0;
-    line-height: 1;
-}
-.chat-topbar-badge {
-    background: #eef5ff;
-    color: #1a73e8;
-    border: 1px solid #d0defb;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 3px 12px;
-    letter-spacing: 0.02em;
-}
-
-.chat-sidebar-divider {
-    height: 1px;
-    background: #eeeeee;
-    margin: 10px 6px 11px;
-}
-.chat-sidebar-heading {
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0;
-    text-transform: none;
-    color: #111111;
-    margin: 0 6px 8px;
-}
-.chat-sidebar-preview {
-    font-size: 0.84rem;
-    color: #6b6b6b;
-    line-height: 1.45;
-    margin: 8px 6px;
-}
-
-div.stButton > button {
-    background: #ffffff !important;
-    color: #1a73e8 !important;
-    border: 1px solid #d6e3fb !important;
-    border-radius: 16px !important;
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    padding: 0.5rem 1.1rem !important;
-    box-shadow: 0 4px 12px rgba(26,115,232,0.08) !important;
-    transition: all 0.2s ease !important;
-}
-div.stButton > button:hover {
-    background: #eef5ff !important;
-    border-color: #bfd5fb !important;
-    color: #1557b0 !important;
-}
-
-.chat-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 64px 24px;
-    text-align: center;
-}
-.chat-empty-icon {
-    font-size: 2.4rem;
-    margin-bottom: 16px;
-    opacity: 0.18;
-}
-.chat-empty-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #3f342b;
-    margin-bottom: 8px;
-}
-.chat-empty-sub {
-    font-size: 0.85rem;
-    color: #9b8e83;
-    line-height: 1.7;
-    max-width: 340px;
-}
-
-div[data-testid="stChatMessage"] {
-    background: transparent !important;
-    padding: 4px 0 !important;
-}
-
-.chat-message-row {
-    display: flex;
-    width: 100%;
-    margin: 8px 0;
-}
-.chat-message-row-user {
-    justify-content: flex-end;
-}
-.chat-message-row-assistant {
-    justify-content: flex-start;
-}
-.chat-message-stack {
-    max-width: 80%;
-}
-.chat-message-row-user .chat-message-stack {
-    max-width: 72%;
-}
-.chat-message-bubble {
-    border-radius: 17px;
-    padding: 10px 13px;
-    line-height: 1.55;
-    font-size: 0.92rem;
-    overflow-wrap: anywhere;
-}
-.chat-message-bubble p {
-    margin: 0 0 8px;
-}
-.chat-message-bubble p:last-child {
-    margin-bottom: 0;
-}
-.chat-message-bubble ul {
-    margin: 8px 0 8px 1.1rem;
-    padding: 0;
-}
-.chat-message-bubble li {
-    margin: 5px 0;
-    padding-left: 2px;
-}
-.chat-message-bubble strong {
-    font-weight: 700;
-}
-.chat-message-row-user .chat-message-bubble {
-    color: #ffffff;
-    background: #1a73e8;
-    border-bottom-right-radius: 6px;
-    box-shadow: 0 8px 18px rgba(26, 115, 232, 0.18);
-}
-.chat-message-row-assistant .chat-message-bubble {
-    color: #2f2923;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-bottom-left-radius: 6px;
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
-}
-.answer-text {
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.chat-typing {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    min-width: 48px;
-}
-.chat-typing-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: #9ca3af;
-    animation: chat-typing-pulse 1s infinite ease-in-out;
-}
-.chat-typing-dot:nth-child(2) { animation-delay: 0.15s; }
-.chat-typing-dot:nth-child(3) { animation-delay: 0.3s; }
-@keyframes chat-typing-pulse {
-    0%, 80%, 100% { opacity: 0.35; transform: translateY(0); }
-    40% { opacity: 1; transform: translateY(-2px); }
-}
-
-.sources-block {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #dbe7fb;
-}
-.sources-label {
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #2f2923;
-    margin-bottom: 8px;
-}
-.sources-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    align-items: stretch;
-}
-.source-row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 5px;
-    align-items: baseline;
-    min-height: 20px;
-    padding: 0;
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    transition: color 0.18s ease;
-    max-width: 100%;
-    color: #2f2923 !important;
-    text-decoration: none !important;
-}
-.source-row:hover {
-    color: #1a73e8 !important;
-}
-.source-row:hover .source-title,
-.source-row:hover .source-index {
-    color: #1a73e8;
-}
-.source-index {
-    color: #5f6b86;
-    font-size: 0.76rem;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-}
-.source-title {
-    display: block;
-    color: #2f2923;
-    font-size: 0.76rem;
-    font-weight: 500;
-    line-height: 1.35;
-    min-width: 0;
-    max-width: 100%;
-    overflow-wrap: anywhere;
-}
-.chunk-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    vertical-align: baseline;
-    padding: 0.08rem 0.55rem;
-    margin: 0 2px;
-    border-radius: 999px;
-    background: #f4f7ff;
-    border: 1px solid #d8e2fb;
-    color: #5f6b86;
-    font-size: 0.78em;
-    font-weight: 600;
-    line-height: 1.3;
-    white-space: nowrap;
-}
-.chunk-tag-label {
-    color: #7d8aa5;
-    font-size: 0.9em;
-    letter-spacing: 0.01em;
-}
-.chunk-tag-sep {
-    color: #a4afc3;
-}
-.chunk-tag-id {
-    color: #1a73e8;
-    font-variant-numeric: tabular-nums;
-    font-weight: 700;
-}
-
-div[data-testid="stChatInput"] {
-    background: #ffffff !important;
-    border-top: 1px solid #eef2f7 !important;
-    padding: 12px 0 16px !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-}
-
-div[data-testid="stChatInput"] > div {
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-div[data-testid="stChatInput"] [data-baseweb="textarea"] {
-    min-height: 44px !important;
-    border: 1px solid #d7dde8 !important;
-    border-radius: 14px !important;
-    padding: 0 44px 0 12px !important;
-    background: #f8fafc !important;
-    box-shadow: none !important;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
-    display: flex !important;
-    align-items: center !important;
-}
-
-div[data-testid="stChatInput"] [data-baseweb="textarea"]:focus-within {
-    border-color: #1a73e8 !important;
-    background: #ffffff !important;
-    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.12) !important;
-}
-
-div[data-testid="stChatInput"] textarea {
-    min-height: 42px !important;
-    height: 42px !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 0.92rem !important;
-    line-height: 1.4 !important;
-    border: 0 !important;
-    outline: 0 !important;
-    background: transparent !important;
-    color: #2f2923 !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    padding: 10px 0 !important;
-    width: 100% !important;
-    resize: none !important;
-}
-
-div[data-testid="stChatInput"] textarea::placeholder {
-    color: #6b7280 !important;
-    opacity: 1 !important;
-}
-
-div[data-testid="stChatInput"] [data-testid="stChatInputSubmitButton"] {
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    min-height: 34px !important;
-    border: 0 !important;
-    border-radius: 10px !important;
-    background: #e9eef6 !important;
-    color: #526071 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin-right: 5px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-div[data-testid="stChatInput"] [data-testid="stChatInputSubmitButton"]:not(:disabled) {
-    background: #1a73e8 !important;
-    color: #ffffff !important;
-}
-
-div[data-testid="stChatInput"] [data-testid="stChatInputSubmitButton"]:not(:disabled):hover {
-    background: #dbeafe !important;
-    color: #1a73e8 !important;
-}
-
-div[data-testid="stChatInput"] [data-testid="stChatInputSubmitButton"]:focus,
-div[data-testid="stChatInput"] [data-testid="stChatInputSubmitButton"]:focus-visible {
-    outline: 0 !important;
-    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.16) !important;
-}
-
-div[data-testid="stChatInput"] svg {
-    width: 18px !important;
-    height: 18px !important;
-}
-
-div[data-testid="stAlert"] {
-    border-radius: 14px !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 0.88rem !important;
-}
-</style>
-"""
+CHAT_STYLE = ""  # Visual styles live in core/styles.css.
 
 
 def _clear_chat_query_param() -> None:
@@ -577,7 +133,8 @@ def _sources_html(sources) -> str:
             f'<span class="source-title" title="{title}">{title}</span>'
         )
         if detail_key:
-            href = f"?detail={quote(detail_key, safe='')}"
+            href = "?" + urlencode({"detail": detail_key, "return_to": "chat",
+                                     "chat": st.session_state.get("chat_active_id", "")})
             items += f'<a class="source-row" href="{href}" target="_self">{row}</a>'
         else:
             items += f'<div class="source-row">{row}</div>'
@@ -595,6 +152,8 @@ def _sources_html(sources) -> str:
 
 def _chat_message_html(role: str, content: object, sources: list | None = None) -> str:
     role = "user" if str(role).strip() == "user" else "assistant"
+    if role == "assistant":
+        content, sources = normalize_references(content, sources)
     row_class = "chat-message-row-user" if role == "user" else "chat-message-row-assistant"
     sources_html = _sources_html(sources) if role == "assistant" and sources else ""
     body = (
@@ -626,26 +185,26 @@ def _chat_typing_html() -> str:
 
 
 def _render_topbar() -> None:
-    col_back, col_info = st.columns([1, 9])
+    col_back, col_info = st.columns([1.5, 8.5], vertical_alignment="center")
 
     with col_back:
         st.write("")
         if st.button("< Home"):
+            st.query_params.clear()
             st.session_state.page = "home"
             st.rerun()
 
     with col_info:
-        st.markdown(
+        st.html(
             '<div class="chat-topbar">'
             '<span class="chat-topbar-title">Research Chat</span>'
-            f'<span class="chat-topbar-badge">RAG / {AGENT_MODEL}</span>'
+            f'<span class="chat-topbar-badge">{AGENT_MODEL}</span>'
             "</div>",
-            unsafe_allow_html=True,
         )
 
 
 def _render_empty_state() -> None:
-    st.markdown(
+    st.html(
         """
         <div class="chat-empty">
             <div class="chat-empty-icon">RAG</div>
@@ -656,19 +215,17 @@ def _render_empty_state() -> None:
             </div>
         </div>
         """,
-        unsafe_allow_html=True,
     )
 
 
 def _render_chat_history() -> None:
     for message in st.session_state.chat_history:
-        st.markdown(
+        st.html(
             _chat_message_html(
                 str(message.get("role", "assistant")),
                 message.get("content", ""),
                 message.get("sources", []),
             ),
-            unsafe_allow_html=True,
         )
 
 
@@ -677,7 +234,7 @@ def _is_chat_pending(session: dict | None) -> bool:
 
 
 def _render_pending_response() -> None:
-    st.markdown(_chat_typing_html(), unsafe_allow_html=True)
+    st.html(_chat_typing_html(),)
 
 
 def _build_chat_preview(session: dict) -> str:
@@ -738,7 +295,7 @@ def _create_new_chat() -> None:
 def _render_sidebar(active_session: dict | None) -> None:
     store = load_chat_store()
 
-    if st.sidebar.button("New chat", use_container_width=True):
+    if st.sidebar.button("New chat", width="stretch"):
         _create_new_chat()
 
     st.sidebar.markdown('<div class="chat-sidebar-divider"></div>', unsafe_allow_html=True)
@@ -767,7 +324,8 @@ def _render_sidebar(active_session: dict | None) -> None:
         if st.sidebar.button(
             button_label,
             key=f"chat_open_{chat_id}",
-            use_container_width=True,
+            help=str(session.get("title", "New chat")),
+            width="stretch",
             type="primary" if is_active else "secondary",
         ):
             _set_active_chat(chat_id)
@@ -905,7 +463,6 @@ def _append_assistant_response(chat_id: str, answer: str, result: dict) -> list[
 
 
 def render_chat_page() -> None:
-    st.markdown(CHAT_STYLE, unsafe_allow_html=True)
     active_session = _init_chat_session()
     _render_sidebar(active_session)
     _render_topbar()
@@ -939,10 +496,10 @@ def render_chat_page() -> None:
         ):
             previous_messages = previous_messages[:-1]
 
-    st.markdown(_chat_message_html("user", question), unsafe_allow_html=True)
+    st.html(_chat_message_html("user", question),)
 
     assistant_placeholder = st.empty()
-    assistant_placeholder.markdown(_chat_typing_html(), unsafe_allow_html=True)
+    assistant_placeholder.html(_chat_typing_html())
     print(
         "[CHAT_UI] run_agent_rag start "
         f"chat_id={submitted_chat_id} question={question[:80]!r}",
@@ -962,9 +519,8 @@ def render_chat_page() -> None:
         flush=True,
     )
 
-    assistant_placeholder.markdown(
-        _chat_message_html("assistant", answer, result.get("sources", [])),
-        unsafe_allow_html=True,
+    assistant_placeholder.html(
+        _chat_message_html("assistant", answer, result.get("sources", []))
     )
     if result.get("error") and not result.get("success", True):
         st.caption(f"Agent error: {result['error']}")

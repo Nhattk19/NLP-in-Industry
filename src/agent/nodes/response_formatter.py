@@ -4,6 +4,8 @@ Response Formatter Node
 Format final output to return to user
 """
 
+import re
+
 
 class ResponseFormatter:
     """Format final response"""
@@ -61,10 +63,31 @@ class ResponseFormatter:
                 for index, doc in enumerate(context_documents, 1)
             ]
 
+        # Retrieval labels identify chunks. Public references identify papers,
+        # numbered consecutively in order of first citation in the answer.
         final_sources = []
+        paper_refs = {}
+        ref_map = {}
         for ref_number, doc in docs_with_refs:
+            paper_id = str(doc.get("paper_id") or "").strip()
+            title = " ".join(str(doc.get("title") or "").split()).casefold()
+            source_url = str(doc.get("source_url") or "").strip()
+            if paper_id and paper_id.casefold() not in {"n/a", "unknown", "none"}:
+                paper_key = ("paper", paper_id)
+            elif title and title not in {"untitled", "unknown title", "n/a"}:
+                paper_key = ("title", title)
+            elif source_url:
+                paper_key = ("url", source_url)
+            else:
+                paper_key = ("chunk", doc.get("chunk_id") or ref_number)
+            if paper_key in paper_refs:
+                ref_map[ref_number] = paper_refs[paper_key]
+                continue
+            public_ref = len(final_sources) + 1
+            paper_refs[paper_key] = public_ref
+            ref_map[ref_number] = public_ref
             final_sources.append({
-                "ref_number": ref_number,
+                "ref_number": public_ref,
                 "paper_id": doc.get("paper_id"),
                 "chunk_id": doc.get("chunk_id"),
                 "title": doc.get("title"),
@@ -77,6 +100,19 @@ class ResponseFormatter:
                 "relevance": self._classify_relevance(doc)
             })
         
+        # Replace in one pass: chained string replacements can corrupt labels
+        # when an old chunk number is also a newly assigned paper number.
+        state["final_answer"] = re.sub(
+            r"\[(\d+)\]",
+            lambda match: f"[{ref_map[int(match.group(1))]}]"
+            if int(match.group(1)) in ref_map else "",
+            state["final_answer"],
+        )
+        state["final_answer"] = re.sub(
+            r"(?:\[\d+\])+",
+            lambda match: "".join(dict.fromkeys(re.findall(r"\[\d+\]", match.group()))),
+            state["final_answer"],
+        )
         state["final_sources"] = final_sources
         
         # Set final confidence

@@ -1,18 +1,16 @@
 import os
 import re
-from pathlib import Path
 
 os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
 os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
 
 import chromadb
 import streamlit as st
+from chromadb.utils import embedding_functions
 from flashrank import Ranker
 from rank_bm25 import BM25Okapi
 
 from core.config import CHROMA_PATH, COLLECTION_NAME, RERANKER_MODEL
-
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 
 def tokenize(text: str) -> list[str]:
@@ -27,31 +25,8 @@ def init_chromadb():
         return None
 
     client = chromadb.PersistentClient(path=CHROMA_PATH)
-    return client.get_collection(name=COLLECTION_NAME)
-
-
-@st.cache_resource(show_spinner="Loading embedding model...")
-def init_abstract_embedder():
-    import torch
-    from sentence_transformers import SentenceTransformer
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    cache_root = (
-        Path.home()
-        / ".cache"
-        / "huggingface"
-        / "hub"
-        / "models--sentence-transformers--all-MiniLM-L6-v2"
-        / "snapshots"
-    )
-    snapshot_dirs = sorted(cache_root.glob("*")) if cache_root.exists() else []
-    if snapshot_dirs:
-        return SentenceTransformer(
-            str(snapshot_dirs[-1]),
-            device=device,
-            local_files_only=True,
-        )
-    return SentenceTransformer(EMBEDDING_MODEL, device=device)
+    embedding_function = embedding_functions.DefaultEmbeddingFunction()
+    return client.get_collection(name=COLLECTION_NAME, embedding_function=embedding_function)
 
 
 @st.cache_resource(show_spinner="Loading AI reranker...")

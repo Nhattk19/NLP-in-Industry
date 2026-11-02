@@ -1,0 +1,237 @@
+/* Shared tokens: blue brand accent, 8px controls, 12px content surfaces. */
+:root {
+  --nlp-bg: #ffffff; --nlp-surface: #ffffff; --nlp-soft: #edf2f9;
+  --nlp-text: #202d40; --nlp-muted: #526176; --nlp-line: #d6dfeb;
+  --nlp-accent: #174ea6; --nlp-accent-soft: #e9f0fc; --nlp-on-accent: #fdfefe;
+  --nlp-focus: #3276d2; --nlp-radius: 12px;
+  color-scheme: light;
+}
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], [data-testid="stBottom"], [data-testid="stBottomBlockContainer"] {
+  background: var(--nlp-bg); color: var(--nlp-text);
+}
+.stApp, .stApp input, .stApp textarea, .stApp button {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+[data-testid="stMainBlockContainer"] { max-width: 1280px; padding: 3.5rem 2.5rem 3rem; }
+[data-testid="stHeader"] { background: var(--nlp-bg); }
+[data-testid="stSidebarNav"] { display: none; }
+[data-testid="stSidebar"] { background: var(--nlp-surface); border-right: 1px solid var(--nlp-line); }
+[data-testid="stSidebarContent"] { padding: 1.5rem 1rem; }
+[data-testid="stColumn"], [data-testid="stVerticalBlock"] { min-width: 0; }
+.stApp h1, .stApp h2, .stApp h3, .stApp label, .stApp [data-testid="stWidgetLabel"] p { color: var(--nlp-text); }
+.stApp [data-testid="stCaptionContainer"] { color: var(--nlp-muted); }
+.stApp a { color: var(--nlp-accent); }
+.stApp button[kind], .stApp [data-testid="stFormSubmitButton"] button {
+  min-height: 42px; border-radius: 8px; border: 1px solid var(--nlp-line);
+  background: var(--nlp-surface); color: var(--nlp-accent); font-weight: 600;
+  box-shadow: none; white-space: nowrap; padding: .5rem .95rem;
+}
+.stApp button[kind="primary"], .stApp [data-testid="stFormSubmitButton"] button[kind="primary"] {
+  color: var(--nlp-on-accent); background: var(--nlp-accent); border-color: var(--nlp-accent);
+}
+.stApp button[kind]:hover { border-color: var(--nlp-accent); background: var(--nlp-accent-soft); color: var(--nlp-accent); }
+.stApp button:disabled { opacity: .48; cursor: not-allowed; }
+.stApp button:active:not(:disabled) { transform: translateY(1px); }
+.stApp :is(button,a,input,textarea):focus-visible { outline: 3px solid var(--nlp-focus); outline-offset: 3px; }
+.stApp [data-baseweb="input"], .stApp [data-baseweb="textarea"], .stApp [data-baseweb="select"] > div {
+  background: var(--nlp-surface); border-color: var(--nlp-line); color: var(--nlp-text); border-radius: 8px;
+}
+.stApp input, .stApp textarea { color: var(--nlp-text); caret-color: var(--nlp-accent); }
+.stApp input::placeholder, .stApp textarea::placeholder { color: var(--nlp-muted); opacity: 1; }
+.stApp [data-baseweb="input"]:focus-within, .stApp [data-baseweb="textarea"]:focus-within { outline: 2px solid var(--nlp-focus); outline-offset: 1px; }
+.stApp hr { border-color: var(--nlp-line); }
+.home-intro { margin: clamp(1rem, 7vh, 4rem) auto 2rem; max-width: 760px; text-align: center; }
+.title-text { color: var(--nlp-accent); font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 720; letter-spacing: -.045em; line-height: 1.12; margin: 0 0 1rem; }
+.subtitle-text { color: var(--nlp-muted); font-size: 1.08rem; line-height: 1.65; max-width: 58ch; margin: auto; }
+.st-key-home_search { max-width: 800px; margin: 0 auto; }
+.st-key-home_mode { max-width: 800px; margin: .5rem auto 0; }
+.paper-card-wrap { margin-bottom: 1rem; }
+.paper-card-link { display: block; text-decoration: none !important; color: inherit; border-radius: var(--nlp-radius); }
+.paper-card { background: var(--nlp-surface); border: 1px solid var(--nlp-line); border-radius: var(--nlp-radius); padding: 1.4rem; }
+.paper-card-link:hover .paper-card { border-color: var(--nlp-accent); }
+.paper-title { color: var(--nlp-accent); font-weight: 680; font-size: 1.13rem; line-height: 1.5; margin-bottom: .6rem; overflow-wrap: anywhere; }
+.paper-authors { color: var(--nlp-muted); font-size: .87rem; line-height: 1.7; margin-bottom: .5rem; }
+.author-chip { display: inline; }
+.author-chip:not(:last-child)::after { content: ", "; }
+.paper-meta, .detail-meta { color: var(--nlp-muted); font-size: .87rem; line-height: 1.6; margin-bottom: .7rem; }
+.venue { color: var(--nlp-accent); }
+.paper-tldr { color: var(--nlp-text); font-size: .95rem; line-height: 1.75; margin: .7rem 0; overflow-wrap: anywhere; }
+.tldr-label { font-weight: 600; margin-right: .35rem; }
+.chips { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-top: .8rem; }
+.chip, .chunk-tag { display: inline-flex; gap: .25rem; padding: .25rem .6rem; border-radius: 6px; border: 1px solid var(--nlp-line); background: var(--nlp-soft); color: var(--nlp-muted); font-size: .78rem; line-height: 1.5; overflow-wrap: anywhere; max-width: 100%; }
+.chip-survey, .chunk-tag { color: var(--nlp-accent); background: var(--nlp-accent-soft); }
+.chip-score { font-variant-numeric: tabular-nums; }
+.section-label, .section-title { font-size: 1rem; color: var(--nlp-text); font-weight: 650; margin: 1.25rem 0 .75rem; }
+.result-header { color: var(--nlp-muted); margin: 0 0 .4rem; line-height: 1.6; }
+.st-key-pagination { padding: 1rem 0; }
+.st-key-pagination [data-testid="stHorizontalBlock"] { flex-wrap: nowrap; gap: .4rem; }
+.st-key-pagination button { min-width: 36px; min-height: 40px; padding: .3rem; width: 100%; }
+.pg-active, .pg-ellipsis { display: flex; justify-content: center; align-items: center; height: 40px; border-radius: 8px; }
+.pg-active { color: var(--nlp-on-accent); background: var(--nlp-accent); font-weight: 700; }
+.pg-ellipsis { color: var(--nlp-muted); }
+.detail-title { color: var(--nlp-text); font-size: clamp(1.5rem, 2.6vw, 2rem); font-weight: 700; line-height: 1.4; margin: .5rem 0 1rem; overflow-wrap: anywhere; }
+.detail-authors { color: var(--nlp-muted); line-height: 1.8; margin-bottom: .75rem; }
+.detail-abstract { color: var(--nlp-text); line-height: 1.85; text-align: left; margin: 0 0 1.5rem; overflow-wrap: anywhere; }
+.link-btn { display: inline-flex; color: var(--nlp-accent); background: var(--nlp-surface); border: 1px solid var(--nlp-line); border-radius: 8px; padding: .5rem .9rem; margin: .5rem .5rem .5rem 0; text-decoration: none; }
+.link-btn:hover { background: var(--nlp-accent-soft); }
+.list-item { color: var(--nlp-text); line-height: 1.7; padding: .55rem 0; overflow-wrap: anywhere; }
+.paper-tab-empty, .chat-placeholder-text { color: var(--nlp-muted); line-height: 1.7; padding: 1rem 0; }
+.detail-tab-offset { margin-top: 1rem; }
+.st-key-paper_chat_panel { position: sticky; top: 4rem; }
+.paper-chat-frame { display: flex; flex-direction: column; height: clamp(360px, 58dvh, 620px); border: 1px solid var(--nlp-line); border-radius: 12px; background: var(--nlp-surface); overflow: hidden; }
+.paper-chat-header { padding: 1rem; border-bottom: 1px solid var(--nlp-line); }
+.paper-chat-title { color: var(--nlp-text); font-weight: 700; }
+.paper-chat-description { color: var(--nlp-muted); font-size: .85rem; margin-top: .2rem; }
+.paper-chat-messages { flex: 1; min-height: 0; overflow-y: auto; padding: 1rem; scrollbar-width: thin; }
+.paper-chat-messages-inner { min-height: 100%; display: flex; flex-direction: column-reverse; gap: .8rem; }
+.paper-chat-empty { color: var(--nlp-muted); margin: auto; line-height: 1.7; text-align: center; padding: 1rem; }
+.paper-chat-row, .chat-message-row { display: flex; width: 100%; margin: .8rem 0; }
+.paper-chat-row-user, .chat-message-row-user { justify-content: flex-end; }
+.paper-chat-row-assistant, .chat-message-row-assistant { justify-content: flex-start; }
+.paper-chat-bubble, .chat-message-bubble { color: var(--nlp-text); background: var(--nlp-surface); border: 1px solid var(--nlp-line); border-radius: 12px; padding: .9rem 1rem; line-height: 1.75; overflow-wrap: anywhere; font-size: .95rem; }
+.paper-chat-bubble { max-width: 95%; }
+.chat-message-stack { width: min(100%, 850px); min-width: 0; }
+.chat-message-row-user .chat-message-stack { width: fit-content; max-width: 80%; }
+.paper-chat-row-user .paper-chat-bubble, .chat-message-row-user .chat-message-bubble { background: var(--nlp-accent-soft); color: var(--nlp-text); border-color: var(--nlp-line); }
+.paper-chat-bubble p, .chat-message-bubble p { margin: 0 0 .65rem; }
+.paper-chat-bubble p:last-child, .chat-message-bubble p:last-child { margin: 0; }
+.paper-chat-bubble ul, .chat-message-bubble ul { padding-left: 1.3rem; }
+.paper-chat-bubble pre, .chat-message-bubble pre { max-width: 100%; overflow-x: auto; }
+.st-key-paper_chat_panel [data-testid="stForm"] { padding: .75rem 0; }
+.chat-topbar { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: .6rem 0; }
+.chat-topbar-title { font-size: 1.4rem; font-weight: 700; color: var(--nlp-text); }
+.chat-topbar-badge { color: var(--nlp-muted); font-size: .8rem; }
+.chat-empty { text-align: center; max-width: 600px; margin: 4rem auto; padding: 1.5rem; }
+.chat-empty-icon { color: var(--nlp-accent); font-size: .9rem; font-weight: 700; margin-bottom: 1rem; }
+.chat-empty-title { font-size: clamp(1.5rem, 3vw, 2rem); color: var(--nlp-text); font-weight: 650; line-height: 1.4; }
+.chat-empty-sub { color: var(--nlp-muted); line-height: 1.8; margin-top: .8rem; }
+.chat-sidebar-heading { color: var(--nlp-muted); font-size: .85rem; font-weight: 600; margin: 1rem 0 .75rem; }
+.chat-sidebar-divider { border-top: 1px solid var(--nlp-line); margin-top: 1rem; }
+.chat-sidebar-preview { color: var(--nlp-muted); line-height: 1.6; }
+/* Scope history styles to actual sidebar buttons, including Streamlit's
+   inner Markdown wrapper. The label must shrink inside the flex button. */
+[data-testid="stSidebar"] [data-testid="stButton"] { width: 100%; min-width: 0; }
+[data-testid="stSidebar"] [data-testid="stButton"] button {
+  width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
+  justify-content: flex-start; text-align: left; overflow: hidden;
+  white-space: normal; padding: .65rem .8rem;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] button > div {
+  min-width: 0; max-width: 100%; flex: 1 1 auto; overflow: hidden;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] [data-testid="stMarkdownContainer"] {
+  min-width: 0; width: 100%; overflow: hidden;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] [data-testid="stMarkdownContainer"] p {
+  margin: 0; white-space: normal !important; overflow-wrap: anywhere;
+  word-break: normal; line-height: 1.5; text-align: left;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.sources-block { border-top: 1px solid var(--nlp-line); margin-top: 1rem; padding-top: .8rem; }
+.sources-label { color: var(--nlp-muted); font-size: .82rem; font-weight: 650; margin-bottom: .5rem; }
+.sources-list { display: grid; gap: .6rem; }
+.source-row { display: grid; grid-template-columns: auto minmax(0,1fr); gap: .5rem; text-decoration: none; }
+.source-index, .source-title { color: var(--nlp-accent); font-size: .86rem; line-height: 1.6; overflow-wrap: anywhere; }
+.chunk-tag-label, .chunk-tag-sep, .chunk-tag-id { color: inherit; }
+.answer-text { white-space: normal; }
+.chat-typing, .paper-chat-typing { display: inline-flex; gap: 5px; align-items: center; min-height: 24px; }
+.chat-typing-dot, .paper-chat-dot { height: 6px; width: 6px; background: var(--nlp-muted); border-radius: 50%; }
+/* Streamlit 1.61 uses a native textarea, not a BaseWeb textarea.
+   Put a single frame on the root and leave native auto-height intact. */
+.stApp [data-testid="stChatInput"] {
+  background: #ffffff !important;
+  border: 1px solid #b8c7db !important;
+  border-radius: 12px !important;
+  padding: 12px 14px !important;
+  box-shadow: none !important;
+  box-sizing: border-box;
+}
+.stApp [data-testid="stChatInput"] > div {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.stApp [data-testid="stChatInput"]:focus-within {
+  border-color: #174ea6 !important;
+  outline: 2px solid #3276d2;
+  outline-offset: 2px;
+}
+.stApp [data-testid="stChatInputTextArea"] {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #202d40 !important;
+  -webkit-text-fill-color: #202d40 !important;
+  padding: 4px 0 !important;
+  line-height: 1.6 !important;
+  min-width: 0;
+}
+.stApp [data-testid="stChatInputSubmitButton"] {
+  color: #174ea6 !important; background: #e9f0fc !important;
+  border-radius: 8px; flex-shrink: 0;
+}
+.stApp [data-testid="stChatInputSubmitButton"]:disabled { opacity: .45; }
+.st-key-paper_chat_panel [data-testid="stTextInput"] input {
+  border: none !important; outline: none !important; box-shadow: none !important;
+  min-width: 0; width: 100%; background: transparent !important;
+}
+.st-key-paper_chat_panel [data-baseweb="input"] {
+  border: 1px solid #b8c7db !important;
+  border-radius: 8px; box-shadow: none;
+}
+[data-testid="stAlert"] { border-radius: 8px; }
+@media (max-width: 767px) {
+  [data-testid="stMainBlockContainer"] { padding: 3rem 1rem 2rem; }
+  [data-testid="stHorizontalBlock"] { flex-wrap: wrap; gap: .75rem; }
+  [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { width: 100%; flex: 1 1 100%; min-width: 0; }
+  .st-key-pagination [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { flex: 1 1 0; width: auto; }
+  .home-intro { margin-top: 1rem; }
+  .paper-card { padding: 1rem; }
+  .chat-empty { margin: 2rem auto; padding: .5rem; }
+  .chat-message-row-user .chat-message-stack { max-width: 95%; }
+  .st-key-paper_chat_panel { position: static; }
+  .paper-chat-frame { height: 440px; max-height: 65dvh; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+
+.stApp [data-testid="stMarkdownContainer"] { overflow-wrap: anywhere; }
+.stApp [data-testid="stHtml"] { min-width: 0; }
+
+/* Keep native inputs legible even when a browser has retained a dark Streamlit theme. */
+.stApp input, .stApp textarea,
+.stApp [data-testid="stTextInput"] input,
+.stApp [data-testid="stChatInput"] textarea {
+  color: #202d40 !important;
+  -webkit-text-fill-color: #202d40 !important;
+  caret-color: #174ea6 !important;
+}
+.stApp input::placeholder, .stApp textarea::placeholder {
+  color: #526176 !important;
+  -webkit-text-fill-color: #526176 !important;
+  opacity: 1 !important;
+}
+.stApp [data-baseweb="input"], .stApp [data-baseweb="textarea"] {
+  background-color: #ffffff !important;
+  border-color: #b8c7db !important;
+}
+
+.stApp [data-testid="stChatInput"] [data-baseweb="textarea"]:focus-within {
+  outline: none !important;
+}
+
+/* Dedicated navigation row, independent of narrow content columns. */
+/* Layer 2: detail navigation stays below Streamlit's header while scrolling. */
+.st-key-detail_navigation {
+  position: sticky; top: 3rem; z-index: 2;
+  background: #ffffff; padding: .75rem 0 1rem; overflow: visible;
+}
+.st-key-detail_navigation [data-testid="stButton"] button {
+  min-width: 160px; height: auto; min-height: 44px;
+  padding: .65rem 1rem; white-space: nowrap; overflow: visible;
+}
+
+.st-key-detail_navigation [data-testid="stMarkdownContainer"] p {
+  margin: 0; line-height: 1.5; white-space: nowrap;
+}
